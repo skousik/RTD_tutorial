@@ -580,7 +580,7 @@ Next, let's pick a single $k \in K$ to visualize. The value $k = (0.5, 1)$ corre
 k_eval = [0.5 ; 1] ;
 ```
 
-Recall that $I$ is a polynomial on $Z \times K$. Evaluate the indicator function on this $k$ to get $I_Z$, a polynomial just on $Z$:
+Recall that $I$ is a polynomial on $Z \times K$. Evaluate $I$ on this $k$ to get $I_z$, a polynomial just on $Z$:
 
 ```matlab
 I_z = msubs(I,k,k_eval) ;
@@ -662,7 +662,9 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon. For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon.
+
+For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
 
 

@@ -87,4 +87,4 @@ $^*$ These authors contributed equally to this work
 
 Special thanks to Sean Vaskov and Ram Vasudevan for helping develop RTD, and writing much of the code in the RTD and simulator repositories. Also thanks to Nils Smit-Anseeuw and Pengcheng Zhao for many, many productive discussions over the past four years.
 
-This tutorial is written in [Typora]([https://typora.io](https://typora.io/)) for Markdown editing. LaTeX support is provided by [TeXify](https://github.com/apps/texify). Special tip: when writing Markdown with LaTeX to be compiled by TeXify, make sure to add an extra newline after any math block, otherwise the LaTeX will be spaced out weirdly.
+This tutorial is written in [Typora]([https://typora.io](https://typora.io/)) for Markdown editing. $\LaTeX$ support is provided by [TeXify](https://github.com/apps/texify). Special tip: when writing Markdown with LaTeX to be compiled by TeXify, make sure to add an extra newline after any math block, otherwise the LaTeX will be spaced out weirdly.
