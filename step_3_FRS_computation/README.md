@@ -334,7 +334,7 @@ Recall that we [computed the tracking error](https://github.com/skousik/RTD_tuto
 
 Let's pick the 0.0 — 0.5 m/s speed range for now. All the code below will work for any fo the ranges.
 
-### Distance Scale
+#### Distance Scale
 
 Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss results here, since it's pretty similar to how we computed the distance scale above. The distance scale required for each initial speed range is as follows:
 
@@ -356,11 +356,14 @@ Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_comp
 <p align="center"><img src="/step_3_FRS_computation/tex/cdef2e61f5595278f9584a6acf7ceb0e.svg?invert_in_darkmode&sanitize=true" align=middle width=662.1169318499999pt height=163.99999275pt/></p>
 
 
+
 Woof, that's a lot to look at! But this is indeed Program <img src="/step_3_FRS_computation/tex/3aec9ee517c47acbb4dc2bb509d150af.svg?invert_in_darkmode&sanitize=true" align=middle width=26.851664399999994pt height=24.65753399999998pt/> on page 10 of the [Big Paper](https://arxiv.org/abs/1809.06746), just specialized to the case where <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> is 2D. We'll specify that <img src="/step_3_FRS_computation/tex/c900aacedee846398a77ce5815fea816.svg?invert_in_darkmode&sanitize=true" align=middle width=59.18030909999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> are all SOS polynomials of finite degree. Notice that we've added <img src="/step_3_FRS_computation/tex/d6328eaebbcd5c358f426dbea4bdbf70.svg?invert_in_darkmode&sanitize=true" align=middle width=15.13700594999999pt height=22.465723500000017pt/> in to the program, because we're not just computing the FRS for a single, fixed <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/> any more.
 
 The new decision variables <img src="/step_3_FRS_computation/tex/eb4779c5fded13881cb5f169b1f10c73.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/>, written as <img src="/step_3_FRS_computation/tex/9294da67e8fbc8ee3f1ac635fc79c893.svg?invert_in_darkmode&sanitize=true" align=middle width=11.989211849999991pt height=14.15524440000002pt/> in the paper, are "disturbance" variables. These polynomials will represent our <img src="/step_3_FRS_computation/tex/64ddb675e322bf1281650681445f5914.svg?invert_in_darkmode&sanitize=true" align=middle width=16.01033609999999pt height=22.831056599999986pt/> and <img src="/step_3_FRS_computation/tex/885839bf3fa334609583ddbd937afdfb.svg?invert_in_darkmode&sanitize=true" align=middle width=15.63556994999999pt height=22.831056599999986pt/> scaling factors for the tracking error. Notice that the tracking error is incorporated using the total derivative of <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> with respect to <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>:
 <p align="center"><img src="/step_3_FRS_computation/tex/6e5c1d28f1dfa35bd2a47b467d0d61d8.svg?invert_in_darkmode&sanitize=true" align=middle width=472.3545981pt height=33.81208709999999pt/></p>
-Next, we'll set up all the objects required to actually solve this program with spotless and MOSEK. Luckily, we don't have to write the whole program out — it will be generated for us by `compute_FRS` automatically.
+
+
+Next, we'll set up all the objects required to actually solve this program with spotless and MOSEK. Luckily, we don't have to write the whole program out — it will be generated for us automatically by `compute_FRS`.
 
 
 
@@ -443,6 +446,8 @@ f = scale*[v_des - w_des*(y - initial_y) ;
                  + w_des*(x - initial_x)] ;
 ```
 
+Notice that these dynamics are now nonlinear with respect to our indeterminates! They are polynomials in <img src="/step_3_FRS_computation/tex/f93ce33e511096ed626b4719d50f17d2.svg?invert_in_darkmode&sanitize=true" align=middle width=8.367621899999993pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>.
+
 
 
 #### Example 7.3: Set up the Tracking Error Function
@@ -467,8 +472,7 @@ Recall that we create functions <img src="/step_3_FRS_computation/tex/64ddb675e3
 The `compute_FRS` function will automatically generate <img src="/step_3_FRS_computation/tex/d32d545344694514dffe290e5ab9066a.svg?invert_in_darkmode&sanitize=true" align=middle width=60.00204869999999pt height=27.91243950000002pt/> with the additional decision variables <img src="/step_3_FRS_computation/tex/eb4779c5fded13881cb5f169b1f10c73.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> in the SOS program. So, we need to pass in the 2-by-2 matrix representing <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>. Don't forget to scale the dynamics!
 
 ```matlab
-g = scale * [g_x, 0 ;
-					   0, 	g_y]
+g = scale * [g_x, 0 ; 0, 	g_y]
 ```
 
 Note that all this is done in a slightly more automated way in the example script, but the end result is the same.
@@ -608,7 +612,9 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon!
+To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon. For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+
+
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 
