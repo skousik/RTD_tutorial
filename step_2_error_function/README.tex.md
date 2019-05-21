@@ -176,6 +176,8 @@ delta_v = 0.25 ; % m/s
 N_samples = 4 ;
 ```
 
+Notice that we have chosen `delta_v` as 0.25 m/s. This means that, at any planning iteration, we are specifying that our desired speed must be within 0.25 m/s of our current speed. Since `t_plan` is 0.5 s, this is an acceleration constraint.
+
 Now, we can create yaw and speed commands:
 
 ```matlab
