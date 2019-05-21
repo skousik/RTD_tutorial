@@ -4,6 +4,8 @@ This tutorial implements [Reachability-based Trajectory Design](https://github.c
 
 Our choice of the TurtleBot was inspired by the work of our friends at UC Berkeley on Hamilton-Jacobi reachability, which can be found [here](https://abajcsy.github.io/safe_navigation/). In this work, we instead use Sums-of-Squares (SOS) programming for our reachability analysis. Our approach is detailed [here](https://arxiv.org/abs/1809.06746).
 
+[Start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
+
 ### Authors
 Shreyas Kousik (skousik at umich.edu)
 
@@ -73,12 +75,12 @@ You can read more about the mathy details of RTD in the following papers:
 2. S. Vaskov, U. Sharma, S. Kousik, M. Johnson-Roberson, R. Vasudevan. "Guaranteed Safe Reachability-based Trajectory Design for a High-Fidelity Model of an Autonomous Passenger Vehicle." [Link](https://arxiv.org/abs/1902.01786)
 3. S. Vaskov<img src="/tex/cdcac8939f3840cd8cddf40059a4cf58.svg?invert_in_darkmode&sanitize=true" align=middle width=6.735194399999992pt height=22.63846199999998pt/>, S. Kousik<img src="/tex/cdcac8939f3840cd8cddf40059a4cf58.svg?invert_in_darkmode&sanitize=true" align=middle width=6.735194399999992pt height=22.63846199999998pt/>, H. Larson, F. Bu, J. Ward, S. Worrall, M. Johnson-Roberson, R. Vasudevan. "Towards Provably Not-at-Fault Control of Autonomous Robots in Arbitrary Dynamic Environments." [Link](https://arxiv.org/abs/1902.02851)
 
-<img src="/tex/cdcac8939f3840cd8cddf40059a4cf58.svg?invert_in_darkmode&sanitize=true" align=middle width=6.735194399999992pt height=22.63846199999998pt/> These authors contribued equally to this work
+<img src="/tex/cdcac8939f3840cd8cddf40059a4cf58.svg?invert_in_darkmode&sanitize=true" align=middle width=6.735194399999992pt height=22.63846199999998pt/> These authors contributed equally to this work
 
 
 
 ## Acknowledgements/Miscellaneous
 
-Special thanks to Sean Vaskov and Ram Vasudevan for helping develop RTD, and writing much of the code in the RTD and simulator repositories.
+Special thanks to Sean Vaskov and Ram Vasudevan for helping develop RTD, and writing much of the code in the RTD and simulator repositories. Also thanks to Nils Smit-Anseeuw and Pengcheng Zhao for many, many productive discussions over the past four years.
 
-This tutorial is written in [Typora]([https://typora.io](https://typora.io/)) for Markdown editing. LaTeX support is provided by [TeXify](https://github.com/apps/texify). Special tip: when writing Markdown with LaTeX to be compiled by TeXify, make sure to add an extra newline after any math block, otherwise the LaTeX will be spaced out weirdly.
+This tutorial is written in [Typora]([https://typora.io](https://typora.io/)) for Markdown editing. <img src="/tex/87181ad2b235919e0785dee664166921.svg?invert_in_darkmode&sanitize=true" align=middle width=45.69716744999999pt height=22.465723500000017pt/> support is provided by [TeXify](https://github.com/apps/texify). Special tip: when writing Markdown with LaTeX to be compiled by TeXify, make sure to add an extra newline after any math block, otherwise the LaTeX will be spaced out weirdly.

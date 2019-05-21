@@ -530,7 +530,7 @@ Next, let's pick a single <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7e
 k_eval = [0.5 ; 1] ;
 ```
 
-Recall that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is a polynomial on <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. Evaluate the indicator function on this <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to get <img src="/step_3_FRS_computation/tex/80918a07f39f9f14a3a35a85748c7552.svg?invert_in_darkmode&sanitize=true" align=middle width=16.988627699999988pt height=22.465723500000017pt/>, a polynomial just on <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/>:
+Recall that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is a polynomial on <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. Evaluate <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> on this <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to get <img src="/step_3_FRS_computation/tex/c6c6cc9e4e541ca2e6b59518ff32294c.svg?invert_in_darkmode&sanitize=true" align=middle width=13.97840729999999pt height=22.465723500000017pt/>, a polynomial just on <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/>:
 
 ```matlab
 I_z = msubs(I,k,k_eval) ;
@@ -612,7 +612,9 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon. For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon.
+
+For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
 
 
