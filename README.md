@@ -59,10 +59,10 @@ RTD is a trajectory planner that creates correct trajectories despite tracking e
 
 ## 4. Tutorial Contents
 This tutorial walks through each of the steps of RTD:
-1. [Pick a **trajectory-producing model**](https://github.com/skousik/turtlebot_RTD/tree/master/step1_desired_trajectories), which defines the parameterized space of desired trajectories.
-2. [Compute the robot's **tracking error**](https://github.com/skousik/turtlebot_RTD/tree/master/step2_error_function), since it can't always follow the desired trajectories perfectly.
-3. [Compute the **FRS**](https://github.com/skousik/turtlebot_RTD/tree/master/step3_FRS_computation).
-4. [Use the FRS online](https://github.com/skousik/turtlebot_RTD/tree/master/step4_online_planning) to represent obstacles as constraints for **trajectory optimization**.
+1. [Pick a **trajectory-producing model**](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories), which defines the parameterized space of desired trajectories.
+2. [Compute the robot's **tracking error**](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function), since it can't always follow the desired trajectories perfectly.
+3. [Compute the **FRS**](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation).
+4. [Use the FRS online](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning) to represent obstacles as constraints for **trajectory optimization**.
 
 
 
