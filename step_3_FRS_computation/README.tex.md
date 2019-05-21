@@ -193,7 +193,7 @@ The last thing to do is make the trajectory-producing model scaled down for the 
 % create trajectory-producing model
 scale = (time_scale/distance_scale) ;
 f = scale*[v_des - w_des*(y - initial_y) ;
-    + w_des*(x - initial_x)] ;
+    						 + w_des*(x - initial_x)] ;
 ```
 
 
@@ -343,13 +343,37 @@ The desired trajectory for $k = (0.5\ \mathrm{rad/s}, 1.0\ \mathrm{m/s})$ is sho
 
 The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.5`). This means we definitely need to include tracking error.
 
+Note that, in the bottom right, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts that say the robot can reach the very edges of the $[-1,1]^2$ space. We can ignore these artifacts at runtime to prevent overly-conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
+
 
 
 ## 3.3 Computing the FRS
 
-Coming soon!
+Now we can compute the entire FRS for the TurtleBot. First, we'll pick a range of initial speeds and command inputs over which to compute the FRS. Then, we'll find the distance scale required to make sure the SOS program is numerically stable. Finally, we'll compute the FRS.
 
+#### Initial Condition and Input Ranges
 
+Recall that we [computed the tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) for three different initial speed ranges: 0.0 — 0.5 m/s, 0.5 — 1.0 m/s, and 1.0 — 1.5 m/s. The point of doing this was that the error function is smaller for the smaller speed ranges, which will make our TurtleBot less conservative in online planning. But, it means we need to compute a separate FRS for each of these ranges.
+
+Let's pick the 0.0 — 0.5 m/s speed range for now. All the code below will work for any fo the ranges.
+
+### Distance Scale
+
+Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss results here. The distance scale required for each initial speed range is as follows:
+
+| Initial Speed Range [m/s] | Distance Scale [m] |
+| ------------------------- | ------------------ |
+| 0.0 — 0.5                 | 0.89               |
+| 0.5 — 1.0                 | 1.37               |
+| 1.0 — 1.5                 | 1.75               |
+
+These are saved in .mat files in `step_3_FRS_computation/data/scaling`.
+
+#### Compute the FRS
+
+Code for this is in the script `compute_turtlebot_FRS.m`. Coming soon, we'll walk through the entire script, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
+
+For degree 4, the solve time is 3.3 s on a 2016 Macbook Pro 15". For degree 6, the solve time is 23.1 s.
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 

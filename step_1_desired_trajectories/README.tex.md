@@ -220,7 +220,7 @@ $$
 $$
 Ideally, we would want to write down the dynamics of _every_ point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. In other words, we would need an infinite number of differential equations.
 
-However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at $t = 0$, the robot's center of mass is at $(x_0, y_0)$, and the robot's initial heading is $\theta_0 = 0$. Then, the following differential equation will produce the trajectory of any point $(x',y')$ on the body:
+However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at $t = 0$, the robot's center of mass is at $(x_0, y_0)$, and the robot's initial heading is $\theta_0 = 0$. Then, the following differential equation will produce the trajectory of any point $(x',y')$ on the body:
 $$
 \begin{align}
 \frac{d}{dt}\begin{bmatrix} x' \\ y' \end{bmatrix} = \begin{bmatrix} v - \omega\cdot(y - y_0) \\ \omega\cdot(x - x_0) \end{bmatrix}.
@@ -266,5 +266,5 @@ A.LLC.accel_gain = 0 ;
 
 Note that the acceleration gain $k_a$ and yaw rate gain $k_\omega$  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
 
-##### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
+#### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 

@@ -66,7 +66,7 @@ h_Z = (z - [-1;-1]) .* ([1;1] - z) ;
 
 % create a circular footprint for the initial condition
 h_Z0 = 1 - ((x - initial_x)/(footprint/distance_scale)).^2 + ...
-    - ((y - initial_y)/(footprint/distance_scale)).^2 ;
+         - ((y - initial_y)/(footprint/distance_scale)).^2 ;
 
 % create trajectory-producing model
 scale = (time_scale/distance_scale) ;
@@ -146,7 +146,7 @@ z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 A.reset(z0)
 A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
 
-%% visualize w polynomial
+%% visualize FRS indicator function polynomial
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
