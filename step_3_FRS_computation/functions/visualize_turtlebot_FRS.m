@@ -34,7 +34,7 @@ function visualize_turtlebot_FRS(FRS_info,k_eval,use_FRS_scaling)
     I_z = msubs(I,k,k_eval) ;
 
     % set up for plot
-    figure(1) ; clf ; hold on ;
+    figure(1) ; clf ; hold on ; axis equal
 
     if use_FRS_scaling
         % plot the FRS
@@ -44,7 +44,7 @@ function visualize_turtlebot_FRS(FRS_info,k_eval,use_FRS_scaling)
         plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
     else
         % plot the FRS
-        plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
+        plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
             'Offset',-[initial_x;initial_y],'Scale',distance_scale)
 
         % plot the initial condition
