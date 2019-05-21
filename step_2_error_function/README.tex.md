@@ -1,6 +1,6 @@
 # Step 2: The Tracking Error Function
 
-#### [Previous step: picking a trajectory-producing model](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories)
+#### [Previous step: picking a trajectory-producing model](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories)
 
 Recall that RTD lets us perform receding-horizon planning in a provably correct way despite tracking error. To make such a guarantee, we need to hold on to the tracking error in some way. In this tutorial, we do so by representing the tracking error as a function of time.
 
@@ -209,4 +209,4 @@ We sample this range of speeds, and compute the tracking error as in Example 5 b
 
 This script fits $g$ as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of $v_0$. In the `step2_error_function/data/` folder, $g$ has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0 m/s, and 1.0 — 1.5 m/s. We'll use these error functions to compute an FRS over each initial speed range next.
 
-#### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation)
+#### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)

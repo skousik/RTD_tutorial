@@ -1,6 +1,6 @@
 # Step 3: Forward Reachable Set Computation
 
-#### [Previous step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function)
+#### [Previous step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
 Now that we have a [dynamic model](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories) and a [tracking error function](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function), we can compute a Forward-Reachable Set (FRS) for the TurtleBot. Note that there are also simple examples of the FRS computation in the [RTD repository](https://github.com/ramvasudevan/RTD/tree/master/examples/offline_FRS_computation).
 
@@ -351,5 +351,5 @@ Coming soon!
 
 
 
-#### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step4_online_planning)
+#### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 

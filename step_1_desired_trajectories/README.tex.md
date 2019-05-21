@@ -204,7 +204,7 @@ example_3_braking_trajectory(w_des,v_des,initial_speed)
 
 Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
 
-#### [Next: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function)
+#### [Next: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
 
 
