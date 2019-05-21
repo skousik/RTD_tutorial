@@ -612,11 +612,33 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon.
+To conclude this section, we have computed the FRS at degree 10. This just required changing the `degree` variable to 10 in `compute_turtlebot_FRS.m`.
 
-For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+This computation took 1.6 hrs per initial speed range on a server with many many 2.8 GHz cores. It also used tens of gigabytes of RAM, so probably don't try it on a laptop.
 
+You'll find the degree 4, 6, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
+### Example 8
+
+We'll compare the solutions for degrees 4, 6, and 10 now. This code is in `example_8_visualize_turtlebot_FRS.m`.
+
+First, to visualize the degree 10 solution for the 0.0 — 0.5 m/s FRS, run the following:
+
+```matlab
+FRS_info = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat')
+k_eval = [0.75 ; 1.0]
+visualize_turtlebot_FRS(FRS_info,k_eval)
+```
+
+This just shows you how to use the function `visualize_turtlebot_FRS`, which takes in an loaded FRS .mat file and a <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to evaluate.
+
+Now, if you run `example_8_visualize_turtlebot_FRS.m`, you should see something like this:
+
+<img src="images/image_for_example_8.png" width="600px"/>
+
+The biggest FRS is degree 4. The middle one is degree 6. The smallest one is degree 10. Notice how, even at degree 10, the FRSes are pretty conservative. This means that our choice of the tracking error function <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> was very conservative, based on how the result without tracking error in Step 3.2 above is quite "tight" to the actual trajectory of the robot.
+
+Now that we have the FRS computed, we can move on to online planning.
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 
