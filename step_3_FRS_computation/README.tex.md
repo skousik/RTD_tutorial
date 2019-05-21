@@ -360,7 +360,7 @@ Recall that we [computed the tracking error](https://github.com/skousik/RTD_tuto
 
 Let's pick the 0.0 — 0.5 m/s speed range for now. All the code below will work for any fo the ranges.
 
-### Distance Scale
+#### Distance Scale
 
 Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss results here, since it's pretty similar to how we computed the distance scale above. The distance scale required for each initial speed range is as follows:
 
@@ -393,13 +393,16 @@ $$
 $$
 
 
+
 Woof, that's a lot to look at! But this is indeed Program $(D)$ on page 10 of the [Big Paper](https://arxiv.org/abs/1809.06746), just specialized to the case where $Z$ is 2D. We'll specify that $V, I, D_1,$ and $D_2$ are all SOS polynomials of finite degree. Notice that we've added $K$ in to the program, because we're not just computing the FRS for a single, fixed $k \in K$ any more.
 
 The new decision variables $D_1$ and $D_2$, written as $q_i$ in the paper, are "disturbance" variables. These polynomials will represent our $d_x$ and $d_y$ scaling factors for the tracking error. Notice that the tracking error is incorporated using the total derivative of $V$ with respect to $g$:
 $$
 \mathcal{L}_gV(t,z) = \frac{\partial}{\partial t} V(t,z) + \frac{\partial}{\partial x}V(t,z)\cdot g_x(z,k) + \frac{\partial}{\partial x}V(t,z)\cdot g_y(z,k).
 $$
-Next, we'll set up all the objects required to actually solve this program with spotless and MOSEK. Luckily, we don't have to write the whole program out — it will be generated for us by `compute_FRS` automatically.
+
+
+Next, we'll set up all the objects required to actually solve this program with spotless and MOSEK. Luckily, we don't have to write the whole program out — it will be generated for us automatically by `compute_FRS`.
 
 
 
@@ -482,6 +485,8 @@ f = scale*[v_des - w_des*(y - initial_y) ;
                  + w_des*(x - initial_x)] ;
 ```
 
+Notice that these dynamics are now nonlinear with respect to our indeterminates! They are polynomials in $z$ and $k$.
+
 
 
 #### Example 7.3: Set up the Tracking Error Function
@@ -517,8 +522,7 @@ $$
 The `compute_FRS` function will automatically generate $[d_x, d_y]^\top$ with the additional decision variables $D_1$ and $D_2$ in the SOS program. So, we need to pass in the 2-by-2 matrix representing $g$. Don't forget to scale the dynamics!
 
 ```matlab
-g = scale * [g_x, 0 ;
-					   0, 	g_y]
+g = scale * [g_x, 0 ; 0, 	g_y]
 ```
 
 Note that all this is done in a slightly more automated way in the example script, but the end result is the same.
@@ -658,7 +662,9 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon!
+To conclude this section, we'll compute the FRS at degree 10. This takes several hours, and tens of gigabytes of RAM, so probably don't try it on a laptop. These results are coming soon. For now, you'll find the degree 4 and degree 6 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+
+
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 
