@@ -153,6 +153,8 @@ delta_v = 0.25 ; % m/s
 N_samples = 4 ;
 ```
 
+Notice that we have chosen `delta_v` as 0.25 m/s. This means that, at any planning iteration, we are specifying that our desired speed must be within 0.25 m/s of our current speed. Since `t_plan` is 0.5 s, this is an acceleration constraint.
+
 Now, we can create yaw and speed commands:
 
 ```matlab
@@ -184,6 +186,6 @@ We sample this range of speeds, and compute the tracking error as in Example 5 b
 
 
 
-This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: <img src="/step_2_error_function/tex/0eea379cc2ca8cf230beb920cb2d9e64.svg?invert_in_darkmode&sanitize=true" align=middle width=46.57551029999998pt height=24.65753399999998pt/> m/s, <img src="/step_2_error_function/tex/54dcb7a27315af0a7049460c7fc60e36.svg?invert_in_darkmode&sanitize=true" align=middle width=46.57551029999998pt height=24.65753399999998pt/> m/s, and <img src="/step_2_error_function/tex/1a90eb0e181463396ea8d4e475657218.svg?invert_in_darkmode&sanitize=true" align=middle width=46.57551029999998pt height=24.65753399999998pt/> m/s. We'll use these error functions to compute an FRS over each initial speed range next.
+This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s. We'll use these error functions to compute an FRS over each initial speed range next.
 
 #### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)
