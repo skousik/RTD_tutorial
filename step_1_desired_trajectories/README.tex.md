@@ -266,4 +266,5 @@ A.LLC.accel_gain = 0 ;
 
 Note that the acceleration gain $k_a$ and yaw rate gain $k_\omega$  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
 
-##### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function)
+##### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
+
