@@ -353,7 +353,7 @@ Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll w
 ### Example 7
 
 Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
-<p align="center"><img src="/step_3_FRS_computation/tex/cdef2e61f5595278f9584a6acf7ceb0e.svg?invert_in_darkmode&sanitize=true" align=middle width=662.1169318499999pt height=163.99999275pt/></p>
+<p align="center"><img src="/step_3_FRS_computation/tex/6cccb1f776b4ad866a04b52ffc8c7c17.svg?invert_in_darkmode&sanitize=true" align=middle width=674.9023577999999pt height=163.99999275pt/></p>
 
 
 
@@ -469,10 +469,11 @@ Recall that we create functions <img src="/step_3_FRS_computation/tex/64ddb675e3
 <p align="center"><img src="/step_3_FRS_computation/tex/76a9bb39fa5fbab3b219f68d4647c4e0.svg?invert_in_darkmode&sanitize=true" align=middle width=275.7042684pt height=39.452455349999994pt/></p>
 
 
+
 The `compute_FRS` function will automatically generate <img src="/step_3_FRS_computation/tex/d32d545344694514dffe290e5ab9066a.svg?invert_in_darkmode&sanitize=true" align=middle width=60.00204869999999pt height=27.91243950000002pt/> with the additional decision variables <img src="/step_3_FRS_computation/tex/eb4779c5fded13881cb5f169b1f10c73.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> in the SOS program. So, we need to pass in the 2-by-2 matrix representing <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>. Don't forget to scale the dynamics!
 
 ```matlab
-g = scale * [g_x, 0 ; 0, 	g_y]
+g = scale * [g_x, 0 ; 0, g_y]
 ```
 
 Note that all this is done in a slightly more automated way in the example script, but the end result is the same.
@@ -481,7 +482,7 @@ Note that all this is done in a slightly more automated way in the example scrip
 
 #### Example 7.4: Creating the SOS Problem Structure
 
-To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> over <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. We created `Z_range` and `K_range` earlier to make this a bit easier:
+To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> over the domain <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. We created `Z_range` and `K_range` earlier to make this a bit easier:
 
 ```matlab
 int_ZK = boxMoments([z;k], [Z_range(:,1);K_range(:,1)], [Z_range(:,2);K_range(:,2)]);
@@ -596,7 +597,9 @@ plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
 plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
 ```
 
-Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
+Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. In addition, because we're including <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>, we're always going to be a bit conservative.
+
+For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
 
 ```
 distance_scale = 1.5 * distance_scale ;
