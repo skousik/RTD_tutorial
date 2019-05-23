@@ -382,11 +382,11 @@ Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_comp
 $$
 \begin{array}{clll}
 {\underset{V, I, D_1, D_2}{\inf}} & {\int_{Z\times K} I(z, k) d \lambda_{Z\times K}} & {} & {}\\
-{\text { s.t. }} & {\mathcal{L}_fV(t,z,k) - D_1(t,z,k) - D_2(t,z,k) \leq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K} \\
+{\text { s.t. }} & -{\mathcal{L}_fV(t,z,k) + D_1(t,z,k) + D_2(t,z,k) \geq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K} \\
 {} & {D_i(t,z,k) - \mathcal{L}_g(t,z,k) \geq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K~\mathrm{and}~i = 1, 2} \\
 {} & {D_i(t,z,k) + \mathcal{L}_g(t,z,k) \geq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K~\mathrm{and}~i = 1, 2} \\
 {} & {D_i(t,z,k) \geq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K~\mathrm{and}~i = 1, 2} \\
-{} & {V(0,z,k) \leq 0} & {} & {\forall~(z,k) \in Z\times K} \\
+{} & {-V(0,z,k) \geq 0} & {} & {\forall~(z,k) \in Z\times K} \\
 {} & {I(z,k) \geq 0} & {} & {\forall~(z,k) \in Z\times K} \\
 {} & {V(t,z,k) + I(z,k) - 1 \geq 0} & {} & {\forall~(t,z,k) \in T\times Z\times K}
 \end{array}
@@ -519,10 +519,11 @@ d_y(t)
 $$
 
 
+
 The `compute_FRS` function will automatically generate $[d_x, d_y]^\top$ with the additional decision variables $D_1$ and $D_2$ in the SOS program. So, we need to pass in the 2-by-2 matrix representing $g$. Don't forget to scale the dynamics!
 
 ```matlab
-g = scale * [g_x, 0 ; 0, 	g_y]
+g = scale * [g_x, 0 ; 0, g_y]
 ```
 
 Note that all this is done in a slightly more automated way in the example script, but the end result is the same.
@@ -531,7 +532,7 @@ Note that all this is done in a slightly more automated way in the example scrip
 
 #### Example 7.4: Creating the SOS Problem Structure
 
-To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates $I$ over $Z \times K$. We created `Z_range` and `K_range` earlier to make this a bit easier:
+To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates $I$ over the domain $Z \times K$. We created `Z_range` and `K_range` earlier to make this a bit easier:
 
 ```matlab
 int_ZK = boxMoments([z;k], [Z_range(:,1);K_range(:,1)], [Z_range(:,2);K_range(:,2)]);
@@ -646,7 +647,9 @@ plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
 plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
 ```
 
-Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
+Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. In addition, because we're including $g$, we're always going to be a bit conservative.
+
+For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
 
 ```
 distance_scale = 1.5 * distance_scale ;
