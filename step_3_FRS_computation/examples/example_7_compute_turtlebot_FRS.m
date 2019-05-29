@@ -19,7 +19,7 @@ load('turtlebot_timing.mat')
 load('turtlebot_error_functions_v0_0.0_to_0.5.mat')
 load('turtlebot_FRS_scaling_v0_0.0_to_0.5.mat')
 
-% uncomment this line to make the degree 4 FRS fit inside the [-1,1]^2 box
+% adjust scaling to make the degree 4 FRS fit inside the [-1,1]^2 box
 distance_scale = 1.5 * distance_scale ;
 
 % create agent to use for footprint
@@ -37,8 +37,6 @@ x = z(1) ; y = z(2) ;
 % create polynomials that are positive on Z, and K, thereby
 % defining them as semi-algebraic sets
 Z_range = [-1, 1 ; -1, 1] ; % z \in [-1,1]^2
-
-Z0_radius = footprint/distance_scale ; % z(0) \in Z_0
 
 K_range = [-1, 1 ; -1, 1] ; % k \in [-1,1]^2
 
