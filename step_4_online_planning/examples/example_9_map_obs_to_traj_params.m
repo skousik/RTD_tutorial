@@ -3,7 +3,8 @@
 % computed in Step 3 to map the obstacle to the trajectory parameter space.
 %
 % Author: Shreyas Kousik
-% Date: 29 May 2019
+% Created: 29 May 2019
+% Updated: 20 May 2019
 %
 %% user parameters
 obstacle_location = [1 ; 0] ; % (x,y)
@@ -41,7 +42,8 @@ r = 2*R*sin(theta_1) ;
 a = 2*b*sin(theta_2) ;
 
 %% discretize obstacle
-% for now, just don't use the arc point spacing
+% for now, just don't use the arc point spacing by setting the miter limit
+% to 2 in buffer_polygon_obstacles
 O_buf = buffer_polygon_obstacles(O,b,2) ;
 O_pts = interpolate_polyline_with_spacing(O_buf,r) ;
 

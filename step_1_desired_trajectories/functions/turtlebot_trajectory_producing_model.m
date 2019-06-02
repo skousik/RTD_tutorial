@@ -7,7 +7,7 @@ function zd = turtlebot_trajectory_producing_model(t,z,T_in,U_in)
 % used.
 %
 % Author: Shreyas Kousik
-% Date: 12 May 2019
+% Created: 12 May 2019
 
     % extract states
     x = z(1) ;

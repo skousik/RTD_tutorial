@@ -4,7 +4,6 @@ function [T,U,Z] = make_turtlebot_desired_trajectory(t_f,w_des,v_des)
 % Create a Dubins path as a full-state trajectory for the TurtleBot.
 %
 % The inputs are:
-%   t_plan   planning timeout
 %   t_f      planning time horizon
 %   w_des    desired yaw rate
 %   v_des    desired speed
@@ -15,7 +14,8 @@ function [T,U,Z] = make_turtlebot_desired_trajectory(t_f,w_des,v_des)
 %   Z        desired trajectory (x,y,h,v) as a 4-by-N array
 %
 % Author: Shreyas Kousik
-% Date: 12 May 2019
+% Created: 12 May 2019
+% Updated: 30 May 2019
 
     % set up timing
     t_sample = 0.01 ;
