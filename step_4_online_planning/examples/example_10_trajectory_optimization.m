@@ -58,7 +58,7 @@ point_spacing = compute_turtlebot_point_spacings(A.footprint,obstacle_buffer) ;
                     A.state(:,end),obstacle_buffer,point_spacing,FRS) ;
 
 % get FRS polynomial and variables
-FRS_msspoly = FRS.FRS_polynomial ;
+FRS_msspoly = FRS.FRS_polynomial - 1 ; % the -1 is really important!
 k = FRS.k ;
 z = FRS.z ;
 
