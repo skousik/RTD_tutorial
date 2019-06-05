@@ -1,13 +1,15 @@
 %% description
 % This script computes a Forward-Reachable Set (FRS) for the TurtleBot. The
-% user specifies
+% user specifies the range of initial speeds; all other info is loaded from
+% the relevant .mat files.
 %
 % Author: Shreyas Kousik
-% Date: 20 May 2019
+% Created: 20 May 2019
+% Updated: 5 June 2019
 %
 %% user parameters
 % degree of SOS polynomial solution
-degree = 4 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
+degree = 6 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
 
 % include tracking error or not (this slows down the computation)
 include_tracking_error = true ;
