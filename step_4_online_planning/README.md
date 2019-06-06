@@ -149,15 +149,198 @@ I_k = msubs(I,z,O_FRS) ;
 
 The variable `I_k` is a list of polynomials in <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. For each of these polynomials, the 1-superlevel set contains all the trajectory parameters that could cause the TurtleBot to reach one of the discretized obstacle points. The nice part is that we can now use these `I_k` polynomials as constraints in a nonlinear optimization program over the trajectory parameters.
 
-If you run the entire `example_9_map_obs_to_traj_params.m` script, you'll see a plot like the following:
+If you run `example_9_map_obs_to_traj_params.m`, you'll see a plot like the following:
 
 <img src="images/image_2_for_example_9.png" width="700px"/>
 
-Notice that there are artifacts near the boundaries of the <img src="/step_4_online_planning/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> box where the FRS polynomial starts to blow up. We can get rid of those later on by ignoring the corners of the box, since those are definitely not reachable by the robot.
+
+
+Notice that there are artifacts near the boundaries of the <img src="/step_4_online_planning/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> box where the FRS polynomial starts to blow up in the middle subplot. We can get rid of those later on by ignoring the corners of the box, since those are definitely not reachable by the robot.
 
 ## 4.3 Trajectory Optimization
 
-Coming soon!
+Now we'll solve the online trajectory optimization problem for a single planning iteration. Most of this is the same as Example 9 above, so we'll just sketch the details. The code is in `example_10_trajectory_optimization.m`.
+
+### Example 10
+
+This example turns much of the previous example into functions, then calls MATLAB's generic nonlinear optimization tool, `fmincon`, to solve the following problem:
+<p align="center"><img src="/step_4_online_planning/tex/4707fcdfb70730be9ebd54bddaa0149f.svg?invert_in_darkmode&sanitize=true" align=middle width=442.29279929999996pt height=46.68803205pt/></p>
+
+
+The point <img src="/step_4_online_planning/tex/8b4f2d3e1de4d24f0d8d4b38af75c90b.svg?invert_in_darkmode&sanitize=true" align=middle width=31.02377849999999pt height=14.15524440000002pt/> is a desired location of the robot, and the point <img src="/step_4_online_planning/tex/297f41396e8158f6a9169cfb6d6d00a5.svg?invert_in_darkmode&sanitize=true" align=middle width=48.510364649999985pt height=24.65753399999998pt/> is the endpoint of a desired trajectory parameterized by <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. We are using <img src="/step_4_online_planning/tex/a38d48f6e4e60fa5c567b920937dd86e.svg?invert_in_darkmode&sanitize=true" align=middle width=66.96320564999999pt height=22.465723500000017pt/> as the constraint to match the standard `fmincon` format for nonlinear inequality constraints.
+
+
+
+### Example 10.1: Setup
+
+First create the robot and load the 0.0 — 0.5 m/s FRS:
+
+```matlab
+initial_speed = 0.49 ; % m/s
+FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+
+A = turtlebot_agent ;
+A.reset([0;0;0;initial_speed])
+```
+
+Now we'll create the desired waypoint:
+
+```matlab
+x_des = 0.75 ;
+y_des = 0.5 ;
+```
+
+Also create an obstacle:
+
+```matlab
+obstacle_location = [1.1 ; 0] ; % (x,y)
+obstacle_scale = 1.0 ;
+N_vertices = 5 ;
+obstacle_buffer = 0.05 ; % m
+O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
+```
+
+
+
+### Example 10.2: Creating a Cost Function
+
+We denote the cost function <img src="/step_4_online_planning/tex/4e0a330da614750eb556c58093edd4ae.svg?invert_in_darkmode&sanitize=true" align=middle width=179.73945329999998pt height=24.65753399999998pt/> . To get the point <img src="/step_4_online_planning/tex/297f41396e8158f6a9169cfb6d6d00a5.svg?invert_in_darkmode&sanitize=true" align=middle width=48.510364649999985pt height=24.65753399999998pt/> for any <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>, we precompute the endpoint parameterized by <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>, then plug it into a cost. This is done in the script `create_turtlebot_cost_function.m`, which also computes gradients of the cost function. This script produces two functions, named `turtlebot_cost` and `turtlebot_cost_grad`.
+
+We then format the cost and gradient for use with `fmincon` as follows. Note, **don't execute the following lines!** These lines are used in the function `turtlebot_cost_for_fmincon`:
+
+```matlab
+function [c, gc] = turtlebot_cost_for_fmincon(k,FRS,wp_local,start_tic,timeout)
+  % evaluate cost and gradient
+  c = turtlebot_cost(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
+  gc = turtlebot_cost_grad(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
+
+  % perform timeout check
+  if nargin > 3 && toc(start_tic) > timeout
+	  error('Timed out while evaluating cost function!')
+  end
+end
+```
+
+
+
+We pass this to `fmincon` in the example script as follows (do run these lines):
+
+```matlab
+% create waypoint from desired location
+z_goal = [x_des; y_des] ;
+
+% transform waypoint to FRS coordinates
+z_goal_local = FRS_to_world(z_goal,A.state(:,end),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
+
+% use waypoint to make cost function
+cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
+```
+
+
+
+### Example 10.3: Creating the Constraints
+
+Now we'll do the same obstacle discretization and evaluation of the FRS polynomial as in Example 9 above. Here, we've wrapped up much of the code into handy-dandy functions. First, discretize the obstacle:
+
+```matlab
+point_spacing = compute_turtlebot_point_spacings(A.footprint,obstacle_buffer) ;
+[O_FRS, O_buf, O_pts] = compute_turtlebot_discretized_obs(O,...
+                    A.state(:,end),obstacle_buffer,point_spacing,FRS) ;
+```
+
+
+
+Now, we'll break the FRS polynomial into a simpler representation than the `msspoly` that we were using above. This is because, for online planning, we need to compute the constraints faster than the spotless function `msubs` can operate. Also note that `fmincon` treats constraints as feasible when they are negative, hence the use of <img src="/step_4_online_planning/tex/4d1719a25e4b38db1fbea7ddf5f1a886.svg?invert_in_darkmode&sanitize=true" align=middle width=36.82636649999999pt height=22.465723500000017pt/> as noted above.
+
+```matlab
+% get FRS polynomial and variables
+FRS_msspoly = FRS.FRS_polynomial - 1 ; % the -1 is really important!
+k = FRS.k ;
+z = FRS.z ;
+
+% decompose polynomial into simplified structure (this speeds up the
+% evaluation of the polynomial on obstacle points)
+FRS_poly = get_FRS_polynomial_structure(FRS_msspoly,z,k) ;
+```
+
+This decomposition just turns the FRS polynomial into a matrix of powers and a matrix of coefficients. Then, polynomial evaluation turns into a bunch of matrix operations, which can be done super fast.
+
+Now we can create the nonlinear constraint function. Note that this uses some functions in the RTD repository that take advantage of the decomposed polynomial. Take a look in `turtlebot_nonlcon_for_fmincon` for more details.
+
+```matlab
+% swap the speed and steer parameters for visualization purposes
+FRS_poly_viz = subs(FRS_msspoly,k,[k(2);k(1)]) ;
+
+% evaluate the FRS polynomial structure input on the obstacle points to get
+% the list of constraint polynomials
+cons_poly = evaluate_FRS_polynomial_on_obstacle_points(FRS_poly,O_FRS) ;
+
+% get the gradient of the constraint polynomials
+cons_poly_grad = get_constraint_polynomial_gradient(cons_poly) ;
+
+% create nonlinear constraint function for fmincon
+nonlcon = @(k) turtlebot_nonlcon_for_fmincon(k,cons_poly,cons_poly_grad) ;
+```
+
+
+
+This gives us the nonlinear constraints. We also need to bound the space <img src="/step_4_online_planning/tex/d6328eaebbcd5c358f426dbea4bdbf70.svg?invert_in_darkmode&sanitize=true" align=middle width=15.13700594999999pt height=22.465723500000017pt/>. Recall that <img src="/step_4_online_planning/tex/5537cda6dac51f6d1e672a0f75f3746e.svg?invert_in_darkmode&sanitize=true" align=middle width=89.26936094999998pt height=26.76175259999998pt/>. However, we also chose a limit that <img src="/step_4_online_planning/tex/6957ec2c8c11110e80efe4f039ecd7a0.svg?invert_in_darkmode&sanitize=true" align=middle width=122.81051144999998pt height=24.65753399999998pt/> m/s, which we need to enforce in terms of upper and lower bounds on <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. We do this as follows:
+
+```matlab
+% create bounds for yaw rate
+k_1_bounds = [-1,1] ;
+
+% create bounds for speed
+v_0 = initial_speed ;
+v_max = FRS.v_range(2) ;
+v_des_lo = max(v_0 - FRS.delta_v, FRS.v_range(1)) ;
+v_des_hi = min(v_0 + FRS.delta_v, FRS.v_range(2)) ;
+k_2_lo = (v_des_lo - v_max/2)*(2/v_max) ;
+k_2_hi = (v_des_hi - v_max/2)*(2/v_max) ;
+k_2_bounds = [k_2_lo, k_2_hi] ;
+
+% combine bounds
+k_bounds = [k_1_bounds ; k_2_bounds] ;
+```
+
+
+
+### Example 10.4: Trajectory Optimization
+
+Now we can call `fmincon`! Note that
+
+```matlab
+% create initial guess
+initial_guess = zeros(2,1) ;
+
+% create optimization options
+options =  optimoptions('fmincon' 'MaxFunctionEvaluations',1e5,'MaxIterations',1e5,...
+                'OptimalityTolerance',1e-3','CheckGradients',false,...
+                'FiniteDifferenceType','central','Diagnostics','off',...
+                'SpecifyConstraintGradient',true,...
+                'SpecifyObjectiveGradient',true);
+
+% call fmincon
+[k_opt,~,exitflag] = fmincon(cost,...
+                            initial_guess,...
+                            [],[],... % linear inequality constraints
+                            [],[],... % linear equality constraints
+                            k_bounds(:,1),... % lower bounds
+                            k_bounds(:,2),... % upper bounds
+                            nonlcon,...
+                            options) ;
+                        
+% check the exitflag
+if exitflag < 0
+    k_opt = [] ;
+end
+```
+
+Depending on the random obstacle, the problem will either be feasible or not. In the case that it is, we can now use all the plotting stuff from Example 9 and see what things look like. You'll see something like this:
+
+<img src="images/image_for_example_10.png" width="700px"/>
+
+Now that we can do a single planning iteration, we can wrap everything up to run in the loop for online planning.
 
 ## 4.4 Making a Planner Class for Simulation
 
