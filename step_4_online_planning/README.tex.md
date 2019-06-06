@@ -1,3 +1,5 @@
+**TL;DR**: Run the script `run_turtlebot_simulation.m`.
+
 # Step 4: Online Planning
 
 #### [Previous step: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation)
@@ -316,7 +318,7 @@ k_bounds = [k_1_bounds ; k_2_bounds] ;
 
 ### Example 10.4: Trajectory Optimization
 
-Now we can call `fmincon`! Note that
+Now we can call `fmincon`! Note that we've chosen these options to help `fmincon` solve faster. You can read more about these [here](https://www.mathworks.com/help/optim/ug/fmincon.html).
 
 ```matlab
 % create initial guess
@@ -351,10 +353,79 @@ Depending on the random obstacle, the problem will either be feasible or not. In
 
 Now that we can do a single planning iteration, we can wrap everything up to run in the loop for online planning.
 
-## 4.4 Making a Planner Class for Simulation
+## 4.4 Running a Simulation
 
-Coming soon!
+You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework will be in the tutorial extras section.
 
-## Appendix 4.A: Planner Class Overview
+We have wrapped up the trajectory optimization procedure above in a `planner` class:
 
-Coming soon!
+```matlab
+turtlebot_RTD_planner_static_subclass < generic_RTD_planner
+```
+
+There's a lot going on in this class, but the gist is that its `replan` method gets called at every planning iteration to attempt trajectory optimization. Let's set up a simulation to see this working. First, the setup:
+
+```matlab
+% world
+obstacle_size_bounds = [0.2, 0.3] ; % side length [min, max]
+N_obstacles = 7 ;
+bounds = [-4,4,-2,2] ;
+goal_radius = 0.5 ;
+
+% planner
+buffer = 0.05 ; % m
+t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
+t_move = 0.5 ;
+
+% simulation
+verbose_level = 10 ;
+```
+
+Now, create the agent, world, and planner:
+
+```matlab
+A = turtlebot_agent ;
+
+P = turtlebot_RTD_planner_static_subclass('verbose',verbose_level,'buffer',buffer,...
+                                 't_plan',t_plan,'t_move',t_move) ;
+
+W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
+                     'verbose',verbose_level,'goal_radius',goal_radius,...
+                     'obstacle_size_bounds',obstacle_size_bounds) ;
+```
+
+Finally, create the simulator, and run a simulation:
+
+```matlab
+S = simulator(A,W,P,'allow_replan_errors',true,'verbose',verbose_level,...
+              'max_sim_time',30,'max_sim_iterations',60) ;
+              
+S.run ;
+```
+
+You should see the TurtleBot move around in a box-shaped world with randomly-placed box obstacles. It will try to reach the goal in the green circle.
+
+There's a _lot_ going on behind the scenes in the simulator. This repository will be updated with explanatory details soon. For now, the overall gist of the simulation loop is as follows, in pseudocode:
+
+```matlab
+planner.old_plan = agent stays stopped // initialize old plan
+
+while agent not at goal or crashed
+		agent_info = agent.get_info() // such as the current state
+		world_info = world.get_info(agent_info) // such as obstacles
+		
+		try // try to find a new plan with trajectory optimization as above
+				new_plan = planner.replan(agent_info,world_info,planning_timeout)
+				planner.old_plan = new_plan
+    catch // the planner errors if it can't plan within the timeout
+    		new_plan = planner.old_plan
+
+		agent.move(new_plan)
+end
+```
+
+
+
+That ends this tutorial about Reachability-based Trajectory Design. Keep an eye out for updates to the extras section. Thanks for reading!
+
+[**Go back to tutorial home page**](https://github.com/skousik/RTD_tutorial).

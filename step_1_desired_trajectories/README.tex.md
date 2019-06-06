@@ -1,3 +1,5 @@
+**TL;DR**: Run `example_3_braking_trajectory.m`. The other examples are pretty straightforward too.
+
 # Step 1: Picking a Trajectory-Producing Model
 
 #### [Previous: tutorial summary](https://github.com/skousik/RTD_tutorial)
