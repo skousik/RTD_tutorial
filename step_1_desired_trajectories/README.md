@@ -1,3 +1,5 @@
+**TL;DR**: Run `example_3_braking_trajectory.m`. The other examples are pretty straightforward too.
+
 # Step 1: Picking a Trajectory-Producing Model
 
 #### [Previous: tutorial summary](https://github.com/skousik/RTD_tutorial)
@@ -196,7 +198,7 @@ example_3_braking_trajectory(w_des,v_des,initial_speed)
 
 Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
 
-#### [Next: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function)
+#### [Next: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
 
 
@@ -208,7 +210,7 @@ With RTD, we try to get around this issue by representing the motion of the robo
 <p align="center"><img src="/step_1_desired_trajectories/tex/c3cd2c7b7f2c9024a22d57bd8af387c0.svg?invert_in_darkmode&sanitize=true" align=middle width=293.07016035pt height=40.960527299999995pt/></p>
 Ideally, we would want to write down the dynamics of _every_ point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. In other words, we would need an infinite number of differential equations.
 
-However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at <img src="/step_1_desired_trajectories/tex/477a717e18587a5e8605780ca167c322.svg?invert_in_darkmode&sanitize=true" align=middle width=36.07293689999999pt height=21.18721440000001pt/>, the robot's center of mass is at <img src="/step_1_desired_trajectories/tex/a903f939f6fb649debe1561ecbb18c66.svg?invert_in_darkmode&sanitize=true" align=middle width=52.29465614999999pt height=24.65753399999998pt/>, and the robot's initial heading is <img src="/step_1_desired_trajectories/tex/bab17f1c90dbcda2fd355c88f6baacb1.svg?invert_in_darkmode&sanitize=true" align=middle width=45.22819289999998pt height=22.831056599999986pt/>. Then, the following differential equation will produce the trajectory of any point <img src="/step_1_desired_trajectories/tex/bf4645e786baf289adfe68fe608d3e69.svg?invert_in_darkmode&sanitize=true" align=middle width=47.35926029999999pt height=24.7161288pt/> on the body:
+However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at <img src="/step_1_desired_trajectories/tex/477a717e18587a5e8605780ca167c322.svg?invert_in_darkmode&sanitize=true" align=middle width=36.07293689999999pt height=21.18721440000001pt/>, the robot's center of mass is at <img src="/step_1_desired_trajectories/tex/a903f939f6fb649debe1561ecbb18c66.svg?invert_in_darkmode&sanitize=true" align=middle width=52.29465614999999pt height=24.65753399999998pt/>, and the robot's initial heading is <img src="/step_1_desired_trajectories/tex/bab17f1c90dbcda2fd355c88f6baacb1.svg?invert_in_darkmode&sanitize=true" align=middle width=45.22819289999998pt height=22.831056599999986pt/>. Then, the following differential equation will produce the trajectory of any point <img src="/step_1_desired_trajectories/tex/bf4645e786baf289adfe68fe608d3e69.svg?invert_in_darkmode&sanitize=true" align=middle width=47.35926029999999pt height=24.7161288pt/> on the body:
 <p align="center"><img src="/step_1_desired_trajectories/tex/a58aa8b39e323167ed70b4ca0562c7f8.svg?invert_in_darkmode&sanitize=true" align=middle width=205.44055455pt height=39.452455349999994pt/></p>
 
 
@@ -241,5 +243,5 @@ A.LLC.accel_gain = 0 ;
 
 Note that the acceleration gain <img src="/step_1_desired_trajectories/tex/eb4513540706477e80b47eb048eeaa9d.svg?invert_in_darkmode&sanitize=true" align=middle width=15.68825939999999pt height=22.831056599999986pt/> and yaw rate gain <img src="/step_1_desired_trajectories/tex/59edb4731438111eb9b889285d97715b.svg?invert_in_darkmode&sanitize=true" align=middle width=17.25200069999999pt height=22.831056599999986pt/>  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
 
-##### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
+#### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 

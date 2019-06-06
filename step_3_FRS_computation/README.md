@@ -1,3 +1,5 @@
+**TL;DR**: See `example_7_compute_turtlebot_FRS.m`, and run the script `compute_turtlebot_FRS.m`.
+
 # Step 3: Forward Reachable Set Computation
 
 #### [Previous step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)

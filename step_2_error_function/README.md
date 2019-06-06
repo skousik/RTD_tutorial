@@ -1,3 +1,5 @@
+**TL;DR**: See `example_4_tracking_error_single_traj.m`, and try running the script `compute_tracking_error_function.m`.
+
 # Step 2: The Tracking Error Function
 
 #### [Previous step: picking a trajectory-producing model](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories)
