@@ -1,4 +1,4 @@
-function [O_FRS, O_buf_out] = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS)
+function [O_FRS, O_buf_out, O_pts_out] = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS)
 % O_FRS = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS)
 %
 % Take obstacle points defined in a global coordinate frame and transform
@@ -24,5 +24,8 @@ function [O_FRS, O_buf_out] = compute_turtlebot_discretized_obs(O_world,turtlebo
     % return the buffered obstacle as well
     if nargout > 1
         O_buf_out = O_buf ;
+        if nargout > 2
+            O_pts_out = O_pts ;
+        end
     end
 end
