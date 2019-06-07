@@ -63,7 +63,7 @@ plot(x,y,'b--','LineWidth',1.5)
 axis equal
 ```
 
-You should see the following:
+You should see something like this:
 
 <img src="images/image_for_example_1.png" width="500px"/>
 
@@ -163,7 +163,7 @@ v_des = 1.0 ;
 % add braking
 t_plan = 0.5 ; % s
 t_stop = 2.61 ; % s
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 ```
 
 Let's see what happens when we apply this to the TurtleBot:
@@ -183,7 +183,9 @@ plot(A)
 A.animate()
 ```
 
-You should see the TurtleBot start to track the desired trajectory, then brake to a stop.
+
+
+You should see the TurtleBot start to track the desired trajectory, then brake to a stop starting at <img src="/step_1_desired_trajectories/tex/e520572846b780b6686ac4a5b2db01fa.svg?invert_in_darkmode&sanitize=true" align=middle width=30.730753349999993pt height=20.221802699999984pt/> = 0.5 s.
 
 ### Example 3
 
@@ -197,6 +199,16 @@ example_3_braking_trajectory(w_des,v_des,initial_speed)
 ```
 
 
+
+Note that you can bypass the creation of a desired trajectory and then conversion into a braking trajectory with the following code:
+
+```matlab
+[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_f,t_stop,w_des,v_des)
+```
+
+
+
+This creates a trajectory of duration <img src="/step_1_desired_trajectories/tex/b58de9e05bf7116bb3dc3829ccdef6f7.svg?invert_in_darkmode&sanitize=true" align=middle width=30.09376919999999pt height=20.221802699999984pt/> that begins braking at <img src="/step_1_desired_trajectories/tex/e520572846b780b6686ac4a5b2db01fa.svg?invert_in_darkmode&sanitize=true" align=middle width=30.730753349999993pt height=20.221802699999984pt/>.
 
 Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
 
@@ -226,7 +238,7 @@ Since the position and heading of the robot can be treated as starting at 0 for 
 ## Appendix 1.B: Low-Level Controller
 
 In `simulator`, each `agent` has the option of using a low-level controller (LLC), specified by the `agent.LLC` property. The Turtlebot agent in particular uses the `turtlebot_PD_LLC.m` LLC, which you can find in the [`simulator_files/`](https://github.com/skousik/turtlebot_RTD/tree/master/simulator_files) directory of this tutorial repository. This controller does PD (proportional-derivative) control about a desired trajectory's speed and yaw rate. The closed-loop system can be written:
-<p align="center"><img src="/step_1_desired_trajectories/tex/46e582aec9cd4cb9b0aef679b516a387.svg?invert_in_darkmode&sanitize=true" align=middle width=276.83134545pt height=78.9048876pt/></p>
+<p align="center"><img src="/step_1_desired_trajectories/tex/4a7d1212c2662d4bee8bf051d1f80f20.svg?invert_in_darkmode&sanitize=true" align=middle width=269.52546555pt height=78.9048876pt/></p>
 given the desired speed and yaw rate commands. You can find this low-level controller in the agent with the following code:
 
 ```
@@ -246,4 +258,3 @@ A.LLC.accel_gain = 0 ;
 Note that the acceleration gain <img src="/step_1_desired_trajectories/tex/eb4513540706477e80b47eb048eeaa9d.svg?invert_in_darkmode&sanitize=true" align=middle width=15.68825939999999pt height=22.831056599999986pt/> and yaw rate gain <img src="/step_1_desired_trajectories/tex/59edb4731438111eb9b889285d97715b.svg?invert_in_darkmode&sanitize=true" align=middle width=17.25200069999999pt height=22.831056599999986pt/>  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
 
 #### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
-
