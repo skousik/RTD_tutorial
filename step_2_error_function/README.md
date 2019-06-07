@@ -36,9 +36,13 @@ The big takeaway is, for any desired trajectory, the tracking error depends on t
 
 First, we'll see how the initial speed affects tracking error. As you vary the initial speed relative to the commanded speed `v_des`, you'll see that the robot does better or worse at tracking.
 
-### Example 4, Part 1
+### Example 4
 
-This code is available in `example_4_tracking_error_single_traj.m`. First, let's set up the situation:
+This code is available in `example_4_tracking_error_single_traj.m`.
+
+#### Example 4.1: An Example Trajectory
+
+First, let's set up the situation:
 
 ```matlab
 % initial condition
@@ -89,7 +93,7 @@ plot(A)
 
 
 
-### Example 4, Part 2
+#### Example 4.2: Computing the Tracking Error
 
 To compute the actual tracking error from this data, we need to normalize time. Recall that the desired trajectory is over the time horizon <img src="/step_2_error_function/tex/f75ef0016eb9e3badc61cfc680ce157f.svg?invert_in_darkmode&sanitize=true" align=middle width=39.11541644999999pt height=24.65753399999998pt/>, but the trajectory with braking takes longer, over the time horizon <img src="/step_2_error_function/tex/8bd7e348c9058d16331f871b3632f453.svg?invert_in_darkmode&sanitize=true" align=middle width=107.21705609999998pt height=24.65753399999998pt/>. The two trajectories are identical up until <img src="/step_2_error_function/tex/5ae1e561ec81f97d93ed9df0f76cab27.svg?invert_in_darkmode&sanitize=true" align=middle width=30.730753349999993pt height=20.221802699999984pt/>. Since we are going to compute the FRS for the desired trajectory's regular time horizon later on, we can rescale time for agent's braking trajectory over the time horizon <img src="/step_2_error_function/tex/408dd2a1a0db44417e1546d7501f069c.svg?invert_in_darkmode&sanitize=true" align=middle width=130.55049974999997pt height=24.65753399999998pt/>:
 
@@ -131,7 +135,7 @@ Now, we can plot the error data that shows how well the robot braked "along" the
 
 If you vary the initial speed, the tracking error will change. We'll use that fact next.
 
-### Remark
+#### Remark
 
 The method of rescaling time above only works for _static obstacles_, because we are going to end up computing an FRS that is independent of time. If we're doing things with dynamic obstacles, we must include the fail-safe maneuver explicitly in the desired trajectory, because the FRS has to include time. We have written [a paper that shows how to do this](https://arxiv.org/abs/1902.02851).
 
@@ -188,6 +192,8 @@ We sample this range of speeds, and compute the tracking error as in Example 5 b
 
 
 
-This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s. We'll use these error functions to compute an FRS over each initial speed range next.
+This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s.
+
+We'll use the tracking error function <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> to compute an FRS over each initial speed range next.
 
 #### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)
