@@ -4,11 +4,11 @@
 
 #### [Previous step: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation)
 
-Details and code coming soon! Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot. Also, make sure you have the latest [RTD](https://github.com/ramvasudevan/RTD) and [simulator](https://github.com/skousik/simulator) repositories so that all the functions in this step work.
+Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot. Also, make sure you have the latest [RTD](https://github.com/ramvasudevan/RTD) and [simulator](https://github.com/skousik/simulator) repositories so that all the functions in this step work.
 
 ## 4.1 Summary
 
-In this step, we use the computed FRS in the [previous step](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) to plan trajectories for the TurtleBot online (i.e., at runtime). First, we take the entire FRS and "intersect" it with obstacles around the robot. This intersection results in all trajectory parameters that would cause a collision. Finally, we optimize over the remaining collision-free trajectory parameters. If none can be found, then we execute the fail-safe maneuver from the previous planning iteration.
+In this step, we use the FRS computed in the [previous step](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) to plan trajectories for the TurtleBot online (i.e., at runtime). First, we take the entire FRS and "intersect" it with obstacles around the robot. This intersection results in all trajectory parameters that would cause a collision. Finally, we optimize over the remaining collision-free trajectory parameters. If none can be found, then we execute the fail-safe maneuver from the previous planning iteration.
 
 ### Mathy Overview
 
@@ -222,20 +222,20 @@ We then format the cost and gradient for use with `fmincon` as follows. Note, **
 
 ```matlab
 function [c, gc] = turtlebot_cost_for_fmincon(k,FRS,wp_local,start_tic,timeout)
-  % evaluate cost and gradient
-  c = turtlebot_cost(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
-  gc = turtlebot_cost_grad(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
+    % evaluate cost and gradient
+    c = turtlebot_cost(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
+    gc = turtlebot_cost_grad(k(1),k(2),FRS.w_max,FRS.v_range(2),wp_local(1),wp_local(2)) ;
 
-  % perform timeout check
-  if nargin > 3 && toc(start_tic) > timeout
-	  error('Timed out while evaluating cost function!')
-  end
+    % perform timeout check
+    if nargin > 3 && toc(start_tic) > timeout
+        error('Timed out while evaluating cost function!')
+    end
 end
 ```
 
 
 
-We pass this to `fmincon` in the example script as follows (do run these lines):
+We pass this to `fmincon` in the example script as follows (run these lines):
 
 ```matlab
 % create waypoint from desired location
@@ -275,9 +275,9 @@ z = FRS.z ;
 FRS_poly = get_FRS_polynomial_structure(FRS_msspoly,z,k) ;
 ```
 
-This decomposition just turns the FRS polynomial into a matrix of powers and a matrix of coefficients. Then, polynomial evaluation turns into a bunch of matrix operations, which can be done super fast.
+This decomposition just turns the FRS polynomial into a matrix of powers and a matrix of coefficients. Then, polynomial evaluation just requires matrix operations that can run super fast.
 
-Now we can create the nonlinear constraint function. Note that this uses some functions in the RTD repository that take advantage of the decomposed polynomial. Take a look in `turtlebot_nonlcon_for_fmincon` for more details.
+Now we can create the nonlinear constraint function. Note that this uses some functions in the RTD repository that take advantage of the decomposed polynomial. Take a look in `turtlebot_nonlcon_for_fmincon.m` for more details.
 
 ```matlab
 % swap the speed and steer parameters for visualization purposes
@@ -356,9 +356,9 @@ Now that we can do a single planning iteration, we can wrap everything up to run
 
 ## 4.4 Running a Simulation
 
-You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework will be in the tutorial extras section.
+You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework are in the tutorial [extras](https://github.com/skousik/RTD_tutorial/tree/master/step_5_extras/extra_2_writing_an_RTD_planner).
 
-We have wrapped up the trajectory optimization procedure above in a `planner` class that inherits the generic RTD planner class as follows:
+We have wrapped up the trajectory optimization procedure above in a `planner` class that inherits the generic RTD planner class as follows (don't run this line):
 
 ```matlab
 turtlebot_RTD_planner_static_subclass < generic_RTD_planner
@@ -408,20 +408,22 @@ S.run ;
 
 You should see the TurtleBot move around in a box-shaped world with randomly-placed box obstacles. It will try to reach the goal in the green circle.
 
-There's a _lot_ going on behind the scenes in the simulator. This repository will be updated with explanatory details soon. For now, the overall gist of the simulation loop is as follows, in pseudocode:
+Note that this sets the `allow_replan_errors` property to `true` for the simulator. In other words, if the planner errors, the simulation will come screeching to a halt with an error. This is super useful for debugging, but should be set to `false` for, e.g., running hundreds of simulations.
 
-```matlab
-planner.old_plan <- "agent stays stopped" // initialize old plan
+There's a _lot_ going on behind the scenes in the simulator. Explanatory details are in the [extras](https://github.com/skousik/RTD_tutorial/tree/master/step_5_extras/extra_1_simulator_overview). The gist of the simulation loop is as follows, in pseudocode:
+
+```C++
+planner.old_plan <-- "agent stays stopped" // initialize old plan
 
 while agent not at goal or crashed
-    agent_info = agent.get_info() // such as the current state
-    world_info = world.get_info(agent_info) // such as obstacles
+    agent_info <-- agent.get_info() // info such as the current state
+    world_info <-- world.get_info(agent_info) // info such as obstacles
 
     try // try to find a new plan with trajectory optimization as above
-        new_plan = planner.replan(agent_info,world_info,planning_timeout)
-        planner.old_plan = new_plan
+        new_plan <-- planner.replan(agent_info,world_info,planning_timeout)
+        planner.old_plan <- new_plan
     catch // the planner errors if it can't plan within the timeout
-        new_plan = planner.old_plan
+        new_plan <-- planner.old_plan
     end
 
 agent.move(new_plan)
@@ -430,7 +432,7 @@ end
 
 
 
-That ends this tutorial about Reachability-based Trajectory Design. Keep an eye out for updates to the extras section. Thanks for reading!
+That ends this tutorial about Reachability-based Trajectory Design. Thanks for reading!
 
 ##### [**Go back to tutorial home page**](https://github.com/skousik/RTD_tutorial).
 

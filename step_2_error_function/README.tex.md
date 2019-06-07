@@ -59,9 +59,13 @@ The big takeaway is, for any desired trajectory, the tracking error depends on t
 
 First, we'll see how the initial speed affects tracking error. As you vary the initial speed relative to the commanded speed `v_des`, you'll see that the robot does better or worse at tracking.
 
-### Example 4, Part 1
+### Example 4
 
-This code is available in `example_4_tracking_error_single_traj.m`. First, let's set up the situation:
+This code is available in `example_4_tracking_error_single_traj.m`.
+
+#### Example 4.1: An Example Trajectory
+
+First, let's set up the situation:
 
 ```matlab
 % initial condition
@@ -112,7 +116,7 @@ plot(A)
 
 
 
-### Example 4, Part 2
+#### Example 4.2: Computing the Tracking Error
 
 To compute the actual tracking error from this data, we need to normalize time. Recall that the desired trajectory is over the time horizon $[0,t_f]$, but the trajectory with braking takes longer, over the time horizon $[0,t_{\mathrm{plan}} + t_{\mathrm{stop}}]$. The two trajectories are identical up until $t_{\mathrm{plan}}$. Since we are going to compute the FRS for the desired trajectory's regular time horizon later on, we can rescale time for agent's braking trajectory over the time horizon $[t_{\mathrm{plan}},t_{\mathrm{plan}} + t_{\mathrm{stop}}]$:
 
@@ -154,7 +158,7 @@ Now, we can plot the error data that shows how well the robot braked "along" the
 
 If you vary the initial speed, the tracking error will change. We'll use that fact next.
 
-### Remark
+#### Remark
 
 The method of rescaling time above only works for _static obstacles_, because we are going to end up computing an FRS that is independent of time. If we're doing things with dynamic obstacles, we must include the fail-safe maneuver explicitly in the desired trajectory, because the FRS has to include time. We have written [a paper that shows how to do this](https://arxiv.org/abs/1902.02851).
 

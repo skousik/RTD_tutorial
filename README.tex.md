@@ -6,13 +6,11 @@ This tutorial implements [Reachability-based Trajectory Design](https://github.c
 
 Our choice of the TurtleBot was inspired by the work of our friends at UC Berkeley on Hamilton-Jacobi reachability, which can be found [here](https://abajcsy.github.io/safe_navigation/). In this work, we instead use Sums-of-Squares (SOS) programming for our reachability analysis. Our approach is detailed [here](https://arxiv.org/abs/1809.06746).
 
-[Start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
-
 ### Authors
 Shreyas Kousik (skousik at umich.edu)
 
 ### License
-This project is licensed under the MIT License.
+This project is licensed under the BSD 3-Clause License.
 
 
 
@@ -75,9 +73,9 @@ This tutorial walks through each of the steps of RTD:
 
 
 
-## References
+## References (How to Cite This Work)
 
-You can read more about the mathy details of RTD in the following papers:
+You can read more about the mathy details of RTD in the following papers. Please cite the ones relevant to your usage of our code.
 1. S. Kousik$^*$, S. Vaskov$^*$, F. Bu, M. Johnson-Roberson, R. Vasudevan. "Bridging the Gap Between Safety and Real-Time Performance in Receding-Horizon Trajectory Design for Mobile Robots." [Link](https://arxiv.org/abs/1809.06746).
 2. S. Vaskov, U. Sharma, S. Kousik, M. Johnson-Roberson, R. Vasudevan. "Guaranteed Safe Reachability-based Trajectory Design for a High-Fidelity Model of an Autonomous Passenger Vehicle." [Link](https://arxiv.org/abs/1902.01786)
 3. S. Vaskov$^*$, S. Kousik$^*$, H. Larson, F. Bu, J. Ward, S. Worrall, M. Johnson-Roberson, R. Vasudevan. "Towards Provably Not-at-Fault Control of Autonomous Robots in Arbitrary Dynamic Environments." [Link](https://arxiv.org/abs/1902.02851)

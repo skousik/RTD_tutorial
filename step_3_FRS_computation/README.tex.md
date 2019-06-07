@@ -4,7 +4,7 @@
 
 #### [Previous step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
-Now that we have a [dynamic model](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories) and a [tracking error function](https://github.com/skousik/RTD_tutorial/tree/master/step2_error_function), we can compute a Forward-Reachable Set (FRS) for the TurtleBot. Note that there are also simple examples of the FRS computation in the [RTD repository](https://github.com/ramvasudevan/RTD/tree/master/examples/offline_FRS_computation).
+Now that we have a [dynamic model](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) and a [tracking error function](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function), we can compute a Forward-Reachable Set (FRS) for the TurtleBot. Note that there are also simple examples of the FRS computation in the [RTD repository](https://github.com/ramvasudevan/RTD/tree/master/examples/offline_FRS_computation).
 
 ## 3.1 Summary
 
@@ -14,17 +14,18 @@ In this step, we use sums-of-squares (SOS) programming to conservatively approxi
 
 Note, you can skip this mathy bit if you want. The important takeaways are listed in the "Goals for This Step" below.
 
-We define the FRS as follows. Consider all points in space that the TurtleBot's body can reach while tracking any of our parameterized trajectories. The FRS, denoted $F$, is all such points, paired with the corresponding trajectory parameters that caused those points to be reached. In other words, if $(x,y)$ is a point that _any point_ on the robot reaches while tracking $k$, then the point $(x,y,k)$ is in $F$. We write more formally next.
+We define the FRS as follows. Consider all points in space that the TurtleBot's body can reach while tracking any of our parameterized trajectories. The FRS, denoted $F$, is all such points, paired with the corresponding trajectory parameters that caused those points to be reached. In other words, if $(x,y)$ is a point that _any point_ on the robot reaches while tracking $k$, then the point $(x,y,k)$ is in $F$. We write this all more formally next.
 
-First, let $f: T \times Z \times K \to \R^2$ denote the trajectory-producing model. The space $T$ is time as before. The space $Z$ is the Cartesian plane containing points denoted $(x,y)$. The space $K$ is the trajectory parameter space, so we can write $k = (k_1,k_2) \in K$. Then, the model is:
+First, let $f: T \times Z \times K \to \mathbb{R}^2$ denote the trajectory-producing model. The space $T$ is time as before. The space $Z$ is the Cartesian plane containing points denoted $(x,y)$. The space $K$ is the trajectory parameter space, so we can write $k = (k_1,k_2) \in K$. Then, the model is:
 $$
 f(t,z,k) = \begin{bmatrix} k_2 - k_1\cdot(y - y_0) \\ k_2\cdot(x - x_0)\end{bmatrix}
 $$
 
 
-as in [Appendix 1.A](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories), where we used the fact that the desired yaw rate $k_1$ is fixed over $T$ to get rid of the heading dimension $\theta$. This model works for _any point_ on the robot and expresses the robot's rigid body motion. The point $(x_0,y_0) \in Z$ is the robot's center of mass at the beginning of any desired trajectory (i.e., when $t = 0$).
 
-Now we can write a definition for $F$. Recall that the tracking error function is denoted $g: T \to \R^2$, and we write it $g = (g_x,g_y)$ for each of the position states. Let $d_x, d_y: T \to [-1,1]$ denote arbitrary "disturbance" functions that are _absolutely integrable_:
+as in [Appendix 1.A](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories#appendix-1a-rigid-body-dynamics), where we used the fact that the desired yaw rate $k_1$ is fixed over $T$ to get rid of the heading dimension $\theta$. This model works for _any point_ on the robot and expresses the robot's rigid body motion. The point $(x_0,y_0) \in Z$ is the robot's center of mass at the beginning of any desired trajectory (i.e., when $t = 0$).
+
+Now we can write a definition for $F$. Recall that the tracking error function is denoted $g: T \to \mathbb{R}^2$, and we write it $g = (g_x,g_y)$ for each of the position states. Let $d_x, d_y: T \to [-1,1]$ denote arbitrary "disturbance" functions that are _absolutely integrable_:
 $$
 \int_T |d_x(t)| dt < \infty\quad\mathrm{and}\quad\int_T |d_y(t)| dt < \infty
 $$
@@ -52,7 +53,7 @@ The key takeaways from the math are the following. We use $f$ to denote the traj
 1. Compute an FRS for a single desired trajectory (i.e. a single $k \in K$) without tracking error
 2. Compute the FRS for all possible desired trajectories, plus tracking error
 
-The first computation is to illustrate what the FRS looks like. The second computation gives us the FRS itself, to use for online planning.
+The first computation is to illustrate what the FRS looks like. The second computation gives us the FRS itself, to use for online planning. Note that computing an FRS that is not too conservative requires tens of gigabytes of RAM. We've gone ahead and done this for you on a big beefy computer; the FRSes are available as .mat files in the [data folder of this step](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation/data/reach_sets).
 
 
 
@@ -150,13 +151,13 @@ $$
 
 where $f = [f_x, f_y]^\top$ for notational convenience, and $k$ is the chosen desired trajectory above. So, the first constraint in the program above tells us that $V$ must be decreasing along trajectories of $f$.
 
-Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many $t \in T$ and $(x,y) \in Z$. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify as polynomials of finite degree on $T\times Z$ and $Z$ respectively. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick]([https://en.wikipedia.org/wiki/Stengle%27s_Positivstellensatz](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz)). Luckily, all that representation stuff is taken care of us in the background by spotless.
+Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many $t \in T$ and $(x,y) \in Z$. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify $V$ and $I$ as polynomials of finite degree on $T\times Z$ and $Z$ respectively. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz). Luckily, all that representation stuff is taken care of us in the background by spotless.
 
 
 
 #### Example 6.3: Setting Stuff Up for the SOS Program
 
-The first step to creating a SOS program with spotless is to set up the "indeterminates," which are not the decision variables, but rather are the variables that the decision variables are made out of:
+The first step to creating a SOS program with spotless is to set up the "indeterminates," which are not the decision variables, but rather are variables that the decision variables are made out of:
 
 ```matlab
 t = msspoly('t', 1) ; % time t
@@ -175,20 +176,24 @@ $$
 
 
 
-But, we also want to scale $T$ to $[0,1]$ and $Z$ to $[-1,1]^2 \subset \mathbb{R}^2$! So, we'll specify the sets like this:
+But, we also want to scale $T$ to $[0,1]$ and $Z$ to $[-1,1]^2 \subset \mathbb{R}^2$. So, we'll specify the sets like this:
 
 ```matlab
 hT = t * (1 - t) ;
 hZ = (z - [-1;-1]) .* ([1;1] - z) ;
 ```
 
-Basically, we just defined quadratic functions that are positive where we want them to be. We'll also do something similar for $Z_0$, which is a circle containing the robot's entire footprint at $t = 0$:
+
+
+Basically, this just defines quadratic functions that are positive where we want them to be. We'll also do something similar for $Z_0$, which is a circle containing the robot's entire footprint at $t = 0$:
 
 ```matlab
 % create a circular footprint for the initial condition
 h_Z0 = 1 - ((x - initial_x)/(footprint/distance_scale)).^2 + ...
          - ((y - initial_y)/(footprint/distance_scale)).^2 ;
 ```
+
+
 
 This is a paraboloid in $Z$ that is positive on $Z_0$.
 
@@ -198,7 +203,7 @@ The last thing to do is make the trajectory-producing model scaled down for the 
 % create trajectory-producing model
 scale = (time_scale/distance_scale) ;
 f = scale*[v_des - w_des*(y - initial_y) ;
-    						 + w_des*(x - initial_x)] ;
+                 + w_des*(x - initial_x)] ;
 ```
 
 
@@ -284,7 +289,7 @@ Now, solve it with MOSEK:
 sol = prog.minimize(obj, @spot_mosek, options) ;
 ```
 
-This takes about $0.46$ s to solve on a 2016 Macbook Pro 15" laptop.
+This takes about 0.46​ s to solve on a 2016 Macbook Pro 15" laptop.
 
 
 
@@ -296,7 +301,7 @@ We care about using $I$, so let's get it:
 I_sol = sol.eval(I) ;
 ```
 
-We want to see that $I$ is greater than or equal to $1$ where the trajectory-producing model went. So, let's create the desired trajectory:
+We want to see that $I$ is greater than or equal to 1 where the trajectory-producing model went. So, let's create the desired trajectory:
 
 ```matlab
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
@@ -348,7 +353,7 @@ The desired trajectory for $k = (0.5\ \mathrm{rad/s}, 1.0\ \mathrm{m/s})$ is sho
 
 The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.5`). This means we definitely need to include tracking error.
 
-Note that, in the bottom right, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts that say the robot can reach the very edges of the $[-1,1]^2$ space. We can ignore these artifacts at runtime to prevent overly-conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
+Note that, in the bottom right, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts, which say the robot can somehow teleport to the very edges of the $[-1,1]^2$ space. We can ignore these artifacts at runtime to prevent super conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
 
 
 
@@ -496,7 +501,7 @@ Notice that these dynamics are now nonlinear with respect to our indeterminates!
 Next, we have to define $g$. First, let's get $g_x$ and $g_y$. Recall that they are both degree 3 polynomials of time, so we'll first create monomials $1, t, t^2, t^3$:
 
 ```matlab
-t_mon = [t^3 t^2 t^1 1] ;
+t_mon = [t^3 t^2 t^1 1] ; % this order matches the order of the g coefficients
 ```
 
 Now we'll make $g_x$ and $g_y$:
@@ -667,7 +672,7 @@ It's still really conservative, but at least we got the whole FRS scaled right.
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we have computed the FRS at degree 10. This just required changing the `degree` variable to 10 in `compute_turtlebot_FRS.m`.
+To conclude this section, we have computed the FRS at degree 10 for you. This just required changing the `degree` variable to 10 in `compute_turtlebot_FRS.m`.
 
 This computation took 1.6 hrs per initial speed range on a server with many many 2.8 GHz cores. It also used tens of gigabytes of RAM, so probably don't try it on a laptop.
 
