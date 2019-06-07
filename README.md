@@ -67,6 +67,7 @@ This tutorial walks through each of the steps of RTD:
 2. [Compute the robot's **tracking error**](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function), since it can't always follow the desired trajectories perfectly.
 3. [Compute the **FRS**](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation).
 4. [Use the FRS online](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning) to represent obstacles as constraints for **trajectory optimization**.
+5. [Explore the nitty gritty details](https://github.com/skousik/RTD_tutorial/tree/master/step_5_extras) with bonus content.
 
 
 
