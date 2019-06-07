@@ -8,7 +8,7 @@ The `simulator` requires three things to run. An `agent`, which is a representat
 
 
 
-## Extra 2.1: Planner Overview
+## Extras 2.1: Planner Overview
 
 #### Planning Hierarchy
 
@@ -44,7 +44,7 @@ In the following, we'll write the constructor, the setup method, and the replan 
 
 
 
-## Extra 2.2: Writing the TurtleBot RTD Planner
+## Extras 2.2: Writing the TurtleBot RTD Planner
 
 Note that all of the code we'll go through here is in `turtlebot_RTD_planner_static.m`, as mentioned above.
 
@@ -469,10 +469,8 @@ if exitflag > 0
     v_des = full(msubs(FRS_cur.v_des,FRS_cur.k,k_opt)) ;
 
     % create the desired trajectory
-    [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(FRS_cur.t_f,w_des,v_des) ;
-
-    % create the trajectory with braking
-    [T,U,Z] = make_turtlebot_RTD_braking_traj(FRS_cur.t_plan,FRS_cur.t_stop,T_go,U_go,Z_go) ;
+    [T,U,Z] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
+                  FRS_cur.t_f,FRS_cur.t_stop,w_des,v_des) ;
 else
     % we'll fill this in
 end
@@ -542,7 +540,7 @@ Note that we haven't defined any plotting methods for the planner we just wrote.
 
 
 
-## Extra 2.3: Running Simulations
+## Extras 2.3: Running Simulations
 
 We can run a simulation as shown in the script `run_my_turtlebot_planner_simulation.m`. This is a copy of `run_turtlebot_simulation.m` with the planner swapped out for the planner that we just wrote above.
 
