@@ -120,7 +120,7 @@ options =  optimoptions('fmincon',...
                             options) ;
                         
 % check the exitflag
-if exitflag < 0
+if exitflag <= 0
     k_opt = [] ;
 end
 

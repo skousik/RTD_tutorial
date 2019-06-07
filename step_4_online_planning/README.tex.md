@@ -4,7 +4,7 @@
 
 #### [Previous step: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation)
 
-Details and code coming soon! Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot.
+Details and code coming soon! Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot. Also, make sure you have the latest [RTD](https://github.com/ramvasudevan/RTD) and [simulator](https://github.com/skousik/simulator) repositories so that all the functions in this step work.
 
 ## 4.1 Summary
 
@@ -165,7 +165,7 @@ Notice that there are artifacts near the boundaries of the $[-1,1]^2$ box where 
 
 ## 4.3 Trajectory Optimization
 
-Now we'll solve the online trajectory optimization problem for a single planning iteration. Most of this is the same as Example 9 above, so we'll just sketch the details. The code is in `example_10_trajectory_optimization.m`.
+Now we'll solve the online trajectory optimization problem for a single planning iteration. Much of this is the same as Example 9 above. The code is in `example_10_trajectory_optimization.m`.
 
 ### Example 10
 
@@ -176,6 +176,7 @@ k_{\text{opt}} = \begin{array}{cll}
 \text{s.t.} &I(z_i,k) - 1 < 0\ \forall\ z_i\ \in\ \text{discretized obstacle.}
 \end{array}
 $$
+
 
 
 The point $z_\text{goal}$ is a desired location of the robot, and the point $z(T,k)$ is the endpoint of a desired trajectory parameterized by $k$. We are using $I - 1 < 0$ as the constraint to match the standard `fmincon` format for nonlinear inequality constraints.
@@ -357,11 +358,13 @@ Now that we can do a single planning iteration, we can wrap everything up to run
 
 You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework will be in the tutorial extras section.
 
-We have wrapped up the trajectory optimization procedure above in a `planner` class:
+We have wrapped up the trajectory optimization procedure above in a `planner` class that inherits the generic RTD planner class as follows:
 
 ```matlab
 turtlebot_RTD_planner_static_subclass < generic_RTD_planner
 ```
+
+
 
 There's a lot going on in this class, but the gist is that its `replan` method gets called at every planning iteration to attempt trajectory optimization. Let's set up a simulation to see this working. First, the setup:
 
@@ -408,19 +411,20 @@ You should see the TurtleBot move around in a box-shaped world with randomly-pla
 There's a _lot_ going on behind the scenes in the simulator. This repository will be updated with explanatory details soon. For now, the overall gist of the simulation loop is as follows, in pseudocode:
 
 ```matlab
-planner.old_plan = agent stays stopped // initialize old plan
+planner.old_plan <- "agent stays stopped" // initialize old plan
 
 while agent not at goal or crashed
-		agent_info = agent.get_info() // such as the current state
-		world_info = world.get_info(agent_info) // such as obstacles
-		
-		try // try to find a new plan with trajectory optimization as above
-				new_plan = planner.replan(agent_info,world_info,planning_timeout)
-				planner.old_plan = new_plan
-    catch // the planner errors if it can't plan within the timeout
-    		new_plan = planner.old_plan
+    agent_info = agent.get_info() // such as the current state
+    world_info = world.get_info(agent_info) // such as obstacles
 
-		agent.move(new_plan)
+    try // try to find a new plan with trajectory optimization as above
+        new_plan = planner.replan(agent_info,world_info,planning_timeout)
+        planner.old_plan = new_plan
+    catch // the planner errors if it can't plan within the timeout
+        new_plan = planner.old_plan
+    end
+
+agent.move(new_plan)
 end
 ```
 

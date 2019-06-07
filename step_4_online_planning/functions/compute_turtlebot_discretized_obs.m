@@ -1,5 +1,6 @@
-function [O_FRS, O_buf_out, O_pts_out] = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS)
+function [O_FRS, O_buf_out, O_pts_out] = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS,O_bounds)
 % O_FRS = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS)
+% O_FRS = compute_turtlebot_discretized_obs(O_world,turtlebot_pose,b,r,FRS,O_bounds)
 %
 % Take obstacle points defined in a global coordinate frame and transform
 % them into the scaled, shifted FRS frame for the TurtleBot.
@@ -10,6 +11,14 @@ function [O_FRS, O_buf_out, O_pts_out] = compute_turtlebot_discretized_obs(O_wor
     % for now, just don't use the arc point spacing by setting the miter limit
     % to 2 in buffer_polygon_obstacles
     O_buf = buffer_polygon_obstacles(O_world,b,2) ;
+    
+    % handle the world bounds obstacle if it's passed in
+    if nargin > 5
+        O_bounds_buf = buffer_polygon_obstacles(O_bounds,b,2) ;
+        O_buf = [O_buf, nan(2,1), O_bounds_buf] ;
+    end
+    
+    % create discretized obstacle points
     O_pts = interpolate_polyline_with_spacing(O_buf,r) ;
 
     % put the obstacles into the FRS frame

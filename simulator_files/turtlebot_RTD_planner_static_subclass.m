@@ -1,4 +1,11 @@
 classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
+% Class: turtlebot_RTD_planner_static_subclass < generic_RTD_planner
+%
+% This class implements RTD for a TurtleBot in static environments.
+%
+% Author: Shreyas Kousik
+% Created: 6 June 2019
+
     properties
         point_spacing
         FRS_polynomial_structure
@@ -21,7 +28,7 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
         end
         
         function load_FRS_files(P,~,~)
-            FRS_data = cell(1,1) ;
+            FRS_data = cell(1,3) ;
             FRS_data{1} = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
             FRS_data{2} = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
             FRS_data{3} = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
@@ -62,10 +69,12 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             P.bounds_as_obstacle = B ;
             
             % process the FRS polynomial
-            I = P.FRS{P.current_FRS_index}.FRS_polynomial - 1 ;
-            z = P.FRS{P.current_FRS_index}.z ;
-            k = P.FRS{P.current_FRS_index}.k ;
-            P.FRS_polynomial_structure = get_FRS_polynomial_structure(I,z,k) ;
+            for idx = 1:3
+                I = P.FRS{idx}.FRS_polynomial - 1 ;
+                z = P.FRS{idx}.z ;
+                k = P.FRS{idx}.k ;
+                P.FRS_polynomial_structure{idx} = get_FRS_polynomial_structure(I,z,k) ;
+            end
         end
         
         %% online planning: process obstacles
@@ -90,15 +99,15 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             % extract obstacles
             O = world_info.obstacles ;
             
-            % add world bounds as obstacle
-            O = [O, nan(2,1), P.bounds_as_obstacle] ;
+            % get world bounds as obstacle
+            O_bounds = P.bounds_as_obstacle ;
             
             % get current FRS
             FRS_cur = P.FRS{P.current_FRS_index} ;
             
             % buffer and discretize obstacles
             [O_FRS, ~, O_pts] = compute_turtlebot_discretized_obs(O,...
-                    P.agent_state,P.buffer,P.point_spacing,FRS_cur) ;
+                    P.agent_state,P.buffer,P.point_spacing,FRS_cur,O_bounds) ;
             
             % save obstacles
             P.current_obstacles_raw = O ;
@@ -116,8 +125,7 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             
             % rotate waypoint to body-fixed frame
             z_goal = P.current_waypoint ;
-            z_goal_local = world_to_local(z(1:3),z_goal(1:2),...
-                0,0,1) ;
+            z_goal_local = world_to_local(z(1:3),z_goal(1:2),0,0,1) ;
             
             % create cost function
             FRS_cur = P.FRS{P.current_FRS_index} ;
@@ -140,7 +148,7 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
                 O_FRS = O_FRS(:,~O_log) ;
                 
                 % get FRS polynomial
-                FRS_poly = P.FRS_polynomial_structure ;
+                FRS_poly = P.FRS_polynomial_structure{P.current_FRS_index} ;
 
                 % plug in to FRS polynomial
                 cons_poly = evaluate_FRS_polynomial_on_obstacle_points(FRS_poly,O_FRS) ;
