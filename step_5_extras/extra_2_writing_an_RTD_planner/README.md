@@ -1,4 +1,4 @@
-# Extras 1: Writing an RTD Planner
+# Extras 2: Writing an RTD Planner
 
 Here, we take `example_10_trajectory_optimization.m` from [Step 4](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning) and turn it into a planner object for the [simulator](https://github.com/skousik/simulator). The file we're writing in particular is called `turtlebot_RTD_planner_static.m`, which is in the [simulator files](https://github.com/skousik/RTD_tutorial/tree/master/simulator_files) folder.
 
@@ -6,7 +6,7 @@ The `simulator` requires three things to run. An `agent`, which is a representat
 
 
 
-## Extra 1.1: Planner Overview
+## Extra 2.1: Planner Overview
 
 #### Planning Hierarchy
 
@@ -42,7 +42,7 @@ In the following, we'll write the constructor, the setup method, and the replan 
 
 
 
-## Extra 1.2: Writing the TurtleBot RTD Planner
+## Extra 2.2: Writing the TurtleBot RTD Planner
 
 Note that all of the code we'll go through here is in `turtlebot_RTD_planner_static.m`, as mentioned above.
 
@@ -127,9 +127,144 @@ P.FRS = FRS_data ;
 
 With that, we have a working constructor method!
 
+
+
 ### Method 2: Setup
 
-Coming soon!
+The `setup` method is called every time before running a simulation. This is because `simulator` can load up many worlds, and many planners, and run every planner in every world. Each planner needs a chance to get acquainted with the world (e.g., to understand the world boundaries) before every simulation. Hence, the setup method.
+
+To start, add the following method after the constructor:
+
+```matlab
+function setup(P,agent_info,world_info)
+    % we'll fill this in
+end
+```
+
+For RTD, the setup method will do five things:
+
+1. compute the point spacing used to discretize obstacles
+2. set up the world boundaries as an obstacle
+3. set up the high-level planner with the global goal
+4. pre-process the FRS polynomial to make online planning real-time fast
+5. initialize a `current_plan` property that will keep track of the plan we're generating
+
+We'll add each of these in order now.
+
+
+
+#### Compute the Point Spacing
+
+First, we'll compute the point spacing as done in Example 9 and in [Section 6 of this monster paper](https://arxiv.org/abs/1809.06746). Add the following lines to your setup method:
+
+```matlab
+b = P.buffer ;
+P.point_spacing = compute_turtlebot_point_spacings(agent_info.footprint,P.buffer) ;
+```
+
+You'll also have to update the planner's properties:
+
+```matlab
+properties
+    FRS
+    point_spacing
+end
+```
+
+
+
+#### World Bounds as Obstacle
+
+Now, let's make the world bounds into a polyline that we can treat as an obstacle:
+
+```matlab
+xlo = P.bounds(1) ; xhi = P.bounds(2) ;
+ylo = P.bounds(3) ; yhi = P.bounds(4) ;
+
+B = [xlo, xhi, xhi, xlo, xlo ; ylo, ylo, yhi, yhi, ylo] ;
+B = [B, nan(2,1), 1.01.*B(:,end:-1:1)] ;
+
+P.bounds_as_obstacle = B ;
+```
+
+Note that this defines the bound as a box with a hole in it that is the size of the free space given by `world_info`. To make this work, add the following property:
+
+```matlab
+properties
+    FRS
+    point_spacing
+    bounds_as_obstacle
+end
+```
+
+
+
+#### High-Level Planner Setup
+
+This is pretty straightforward. Just add the following lines to give the high-level planner the information about our goal and lookahead distance:
+
+```matlab
+P.HLP.goal = world_info.goal ;
+P.HLP.default_lookahead_distance = P.lookahead_distance ;
+```
+
+Look in the `straight_line_HLP` file to see how these are used. All high-level planners in the simulator framework can be written in similar ways (yay, object-oriented programming).
+
+This requires adding a property:
+
+```matlab
+properties
+    FRS
+    point_spacing
+    bounds_as_obstacle
+    lookahead_distance
+end
+```
+
+
+
+#### Pre-Process FRS Polynomial
+
+Recall that we [computed three FRSes](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) for our TurtleBot. We'll pre-process them as done in [Example 10](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning#43-trajectory-optimization):
+
+```matlab
+P.FRS_polynomial_structure = cell(1,3) ;
+
+for idx = 1:3
+    I = P.FRS{idx}.FRS_polynomial - 1 ;
+    z = P.FRS{idx}.z ;
+    k = P.FRS{idx}.k ;
+    P.FRS_polynomial_structure{idx} = get_FRS_polynomial_structure(I,z,k) ;
+end
+```
+
+This requires you to add a property:
+
+```matlab
+properties
+    FRS
+    FRS_polynomial_structure
+    point_spacing
+    bounds_as_obstacle
+    lookahead_distance
+end
+```
+
+
+
+#### Initialize Plan
+
+Finally, add the following lines to the setup method to initialize the current plan as a structure:
+
+```matlab
+P.current_plan.T = [] ;
+P.current_plan.U = [] ;
+P.current_plan.Z = [] ;
+```
+
+Note that `current_plan` is a default property of `planner`.
+
+These fields will contain a time array `T` with corresponding inputs `U` and desired trajectory `Z`. All three of these fields have data represented as columns. In other words `T` is a row vector of time, the columns of `U` are the TurtleBot's control inputs at each time in `T`, and the columns of `Z` are the desired state at each time in `T`. So, if `T` has `N` columns, then `U` is size 2-by-`N` and `Z` is size 4-by-`N`.
 
 
 
@@ -137,6 +272,6 @@ Coming soon!
 
 Coming soon!
 
-## Extra 1.3: Running Simulations
+## Extra 2.3: Running Simulations
 
 Coming soon!
