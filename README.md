@@ -6,6 +6,8 @@ This tutorial implements [Reachability-based Trajectory Design](https://github.c
 
 Our choice of the TurtleBot was inspired by the work of our friends at UC Berkeley on Hamilton-Jacobi reachability, which can be found [here](https://abajcsy.github.io/safe_navigation/). In this work, we instead use Sums-of-Squares (SOS) programming for our reachability analysis. Our approach is detailed [here](https://arxiv.org/abs/1809.06746).
 
+[Start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
+
 ### Authors
 Shreyas Kousik (skousik at umich.edu)
 

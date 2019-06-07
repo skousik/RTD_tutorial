@@ -4,7 +4,7 @@
 
 #### [Previous step: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation)
 
-Details and code coming soon! Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot.
+Details and code coming soon! Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot. Also, make sure you have the latest [RTD](https://github.com/ramvasudevan/RTD) and [simulator](https://github.com/skousik/simulator) repositories so that all the functions in this step work.
 
 ## 4.1 Summary
 
@@ -161,12 +161,13 @@ Notice that there are artifacts near the boundaries of the <img src="/step_4_onl
 
 ## 4.3 Trajectory Optimization
 
-Now we'll solve the online trajectory optimization problem for a single planning iteration. Most of this is the same as Example 9 above, so we'll just sketch the details. The code is in `example_10_trajectory_optimization.m`.
+Now we'll solve the online trajectory optimization problem for a single planning iteration. Much of this is the same as Example 9 above. The code is in `example_10_trajectory_optimization.m`.
 
 ### Example 10
 
 This example turns much of the previous example into functions, then calls MATLAB's generic nonlinear optimization tool, `fmincon`, to solve the following problem:
 <p align="center"><img src="/step_4_online_planning/tex/4707fcdfb70730be9ebd54bddaa0149f.svg?invert_in_darkmode&sanitize=true" align=middle width=442.29279929999996pt height=46.68803205pt/></p>
+
 
 
 The point <img src="/step_4_online_planning/tex/8b4f2d3e1de4d24f0d8d4b38af75c90b.svg?invert_in_darkmode&sanitize=true" align=middle width=31.02377849999999pt height=14.15524440000002pt/> is a desired location of the robot, and the point <img src="/step_4_online_planning/tex/297f41396e8158f6a9169cfb6d6d00a5.svg?invert_in_darkmode&sanitize=true" align=middle width=48.510364649999985pt height=24.65753399999998pt/> is the endpoint of a desired trajectory parameterized by <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. We are using <img src="/step_4_online_planning/tex/a38d48f6e4e60fa5c567b920937dd86e.svg?invert_in_darkmode&sanitize=true" align=middle width=66.96320564999999pt height=22.465723500000017pt/> as the constraint to match the standard `fmincon` format for nonlinear inequality constraints.
@@ -348,11 +349,13 @@ Now that we can do a single planning iteration, we can wrap everything up to run
 
 You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework will be in the tutorial extras section.
 
-We have wrapped up the trajectory optimization procedure above in a `planner` class:
+We have wrapped up the trajectory optimization procedure above in a `planner` class that inherits the generic RTD planner class as follows:
 
 ```matlab
 turtlebot_RTD_planner_static_subclass < generic_RTD_planner
 ```
+
+
 
 There's a lot going on in this class, but the gist is that its `replan` method gets called at every planning iteration to attempt trajectory optimization. Let's set up a simulation to see this working. First, the setup:
 
@@ -399,19 +402,20 @@ You should see the TurtleBot move around in a box-shaped world with randomly-pla
 There's a _lot_ going on behind the scenes in the simulator. This repository will be updated with explanatory details soon. For now, the overall gist of the simulation loop is as follows, in pseudocode:
 
 ```matlab
-planner.old_plan = agent stays stopped // initialize old plan
+planner.old_plan <- "agent stays stopped" // initialize old plan
 
 while agent not at goal or crashed
-		agent_info = agent.get_info() // such as the current state
-		world_info = world.get_info(agent_info) // such as obstacles
-		
-		try // try to find a new plan with trajectory optimization as above
-				new_plan = planner.replan(agent_info,world_info,planning_timeout)
-				planner.old_plan = new_plan
-    catch // the planner errors if it can't plan within the timeout
-    		new_plan = planner.old_plan
+    agent_info = agent.get_info() // such as the current state
+    world_info = world.get_info(agent_info) // such as obstacles
 
-		agent.move(new_plan)
+    try // try to find a new plan with trajectory optimization as above
+        new_plan = planner.replan(agent_info,world_info,planning_timeout)
+        planner.old_plan = new_plan
+    catch // the planner errors if it can't plan within the timeout
+        new_plan = planner.old_plan
+    end
+
+agent.move(new_plan)
 end
 ```
 
