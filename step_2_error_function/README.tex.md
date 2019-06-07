@@ -40,11 +40,11 @@ $$
 
 
 
-where $g = (g_x, g_y)$ is the tracking error in each position state. We don't care about explicitly bounding the error in the $\theta$ or $v$ states, since obstacles only exist in $x$ and $y$. Also notice that both $\theta$ and $v$ influence the position, so $g$ bounds them implicitly. Also notice that the high-fidelity model includes a closed-loop PD controller, which is defined in Appendix 1.B of [the previous section](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories).
+where $g = (g_x, g_y)$ is the tracking error in each position state. We don't care about explicitly bounding the error in the $\theta$ or $v$ states, since obstacles only exist in $x$ and $y$. Also notice that both $\theta$ and $v$ influence the position, so $g$ bounds them implicitly. Also notice that the high-fidelity model includes a closed-loop PD controller, which is defined in Appendix 1.B of [the previous section](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories).
 
-This tracking error function is useful as follows. First, assume that the high-fidelity model and trajectory-producing model have the same initial position and heading at the beginning of each planning iteration. Then, all spatial error between the two models can be bounded by the integral of $g$ over time. This lets us use $g$ in the [FRS computation](https://github.com/skousik/RTD_tutorial/tree/master/step3_FRS_computation).
+This tracking error function is useful as follows. First, assume that the high-fidelity model and trajectory-producing model have the same initial position and heading at the beginning of each planning iteration. Then, all spatial error between the two models can be bounded by the integral of $g$ over time. This lets us use $g$ in the [FRS computation](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation).
 
-More formal explanations are available in the papers cited in the [References section](https://github.com/skousik/RTD_tutorial).
+More formal explanations are available in the papers cited in the [references](https://github.com/skousik/RTD_tutorial#references).
 
 ### Goals for This Step
 
