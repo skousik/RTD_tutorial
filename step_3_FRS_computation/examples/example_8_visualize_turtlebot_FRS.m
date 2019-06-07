@@ -60,33 +60,43 @@ z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
 
 % create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
 A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+
+%% create offsets and distance scales for the FRSes
+D4 = FRS_4.distance_scale ;
+O4 = -D4 * [FRS_4.initial_x ; FRS_4.initial_y] ;
+
+D6 = FRS_6.distance_scale ;
+O6 = -D6 * [FRS_6.initial_x ; FRS_6.initial_y] ;
+
+D10 = FRS_10.distance_scale ;
+O10= -D10 * [FRS_10.initial_x ; FRS_10.initial_y] ;
 
 %% plot
 figure(1) ; clf ; hold on ; axis equal
 
 % plot the initial condition
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[FRS_4.initial_x ; FRS_4.initial_y],'Scale',FRS_4.distance_scale)
+    'Offset',O4,'Scale',D4)
 
 % plot degree 4 FRS
 I_z_4 = msubs(FRS_4.FRS_polynomial,k,k_eval) ;
 plot_2D_msspoly_contour(I_z_4,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[FRS_4.initial_x ; FRS_4.initial_y],'Scale',FRS_4.distance_scale)
+    'Offset',O4,'Scale',D4)
 
 % plot degree 6 FRS
 I_z_6 = msubs(FRS_6.FRS_polynomial,k,k_eval) ;
 plot_2D_msspoly_contour(I_z_6,z,1,'LineWidth',1.5,'Color',0.6*[0.1 1 0.3],...
-    'Offset',-[FRS_6.initial_x ; FRS_6.initial_y],'Scale',FRS_6.distance_scale)
+    'Offset',O6,'Scale',D6)
 
 % plot degree 10 FRS
 I_z_10 = msubs(FRS_10.FRS_polynomial,k,k_eval) ;
 plot_2D_msspoly_contour(I_z_10,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
-    'Offset',-[FRS_10.initial_x ; FRS_10.initial_y],'Scale',FRS_10.distance_scale)
+    'Offset',O10,'Scale',D10)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)

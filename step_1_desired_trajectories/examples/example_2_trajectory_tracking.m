@@ -1,3 +1,12 @@
+%% description
+%
+% This script demonstrates the turtlebot's trajectory-tracking behavior
+% using the PD controller (see A.LLC).
+%
+% Author: Shreyas Kousik
+% Created: 12 May 2019
+% Updated: 7 June 2019
+%
 %% run the trajectory tracking
 A = turtlebot_agent() ;
 v0 = 0.5 ;

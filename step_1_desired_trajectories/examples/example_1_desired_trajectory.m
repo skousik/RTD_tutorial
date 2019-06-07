@@ -1,13 +1,17 @@
-% example_1_desired_trajectory.m
+%% description
 %
 % Create and plot an example desired trajectory.
 %
 % Author: Shreyas Kousik
-% Date: 15 May 2019
-
+% Created: 15 May 2019
+% Updated: 7 June 2019
+%
+%% user parameters
 t_f = 1 ;
 w_des = 0.5 ; % rad/s
 v_des = 1.0 ; % m/s
+
+%% automated from here
 [T,U,Z] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % get the x and y positions of the trajectory

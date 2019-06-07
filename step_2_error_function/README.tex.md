@@ -95,7 +95,7 @@ Now, make the desired trajectory, and include braking for the robot.
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 ```
 
 Track the desired trajectory:
@@ -220,3 +220,5 @@ This script fits $g$ as a polynomial, and saves the polynomial coefficients and 
 We'll use the tracking error function $g$ to compute an FRS over each initial speed range next.
 
 #### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)
+
+$.$

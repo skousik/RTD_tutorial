@@ -67,7 +67,7 @@ v_des = validation_desired_speed ;
 % convert the desired trajectory to a braking trajectory that can be used
 % by the TurtleBot with the PD controller that we're using for RTD (NOTE
 % we don't have to use PD for RTD, but we've chosen it for this example)
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % reset the agent to its max speed
 A.reset(z0) ;

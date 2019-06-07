@@ -198,10 +198,8 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             v_des = full(msubs(FRS_cur.v_des,k,k_opt)) ;
 
             % create the desired trajectory
-            [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(FRS_cur.t_f,w_des,v_des) ;
-
-            % create the braking trajectory
-            [T_out,U_out,Z_out] = make_turtlebot_RTD_braking_traj(FRS_cur.t_plan,FRS_cur.t_stop,T_go,U_go,Z_go) ;
+            [T_out,U_out,Z_out] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
+                                    FRS_cur.t_f,FRS_cur.t_stop,w_des,v_des) ;
         end
         
         %% plotting

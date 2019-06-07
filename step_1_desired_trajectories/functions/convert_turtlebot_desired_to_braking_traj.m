@@ -1,10 +1,14 @@
-function [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T,U,Z)
-% [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T,U,Z)
+function [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T,U,Z)
+% [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T,U,Z)
 %
 % Given a desired trajectory without braking, transform it into one with
 % braking by commanding a hard stop and linearly decreasing the yaw rate.
 % This causes the TurtleBot to brake "along" the original desired
 % trajectory.
+%
+% Author: Shreyas Kousik
+% Created: 12 May 2019
+% Updated: 7 June 2019
 
     % initialize the output as a copy of the initial trajectory
     T_brk = T ;

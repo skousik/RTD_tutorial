@@ -44,11 +44,12 @@ function visualize_turtlebot_FRS(FRS_info,k_eval,use_FRS_scaling)
         plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
     else
         % plot the FRS
+        offset = -distance_scale*[initial_x;initial_y] ;
         plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-            'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+            'Offset',offset,'Scale',distance_scale)
 
         % plot the initial condition
         plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-            'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+            'Offset',offset,'Scale',distance_scale)
     end
 end

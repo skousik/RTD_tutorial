@@ -316,7 +316,7 @@ initial_speed = 0.75 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the braking trajectory (i.e., include the fail-safe maneuver)
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -329,12 +329,13 @@ Now, we can visualize the output:
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
+offset = -distance_scale*[initial_x;initial_y] ;
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the FRS
 plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
@@ -347,7 +348,9 @@ You should see something like this:
 
 <img src="images/image_for_example_6.png" width="600px"/>
 
-The green contour is the level set $I(z) \geq 1$. The dark blue circle at $(0,0)$ is the initial condition set $Z_0$. Notice that both the FRS and the initial condition set are unscaled by `distance_scale` and unshifted by `initial_x` and `initial_y` by using the `'Scale'` and `'Offset'` arguments in the plotting function.
+
+
+The green contour is the level set $I(z) \geq 1$. The dark blue circle at the origin is the initial condition set $Z_0$. Notice that both the FRS and the initial condition set are unscaled by `distance_scale` and unshifted by `initial_x` and `initial_y` by using the `'Scale'` and `'Offset'` arguments in the plotting function.
 
 The desired trajectory for $k = (0.5\ \mathrm{rad/s}, 1.0\ \mathrm{m/s})$ is shown as the blue dashed line. Notice that it fits entirely inside the FRS contour. In other words, the trajectory-producing model is indeed inside the FRS.
 
@@ -612,7 +615,7 @@ z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
 
 % create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -625,12 +628,13 @@ Finally, plot the subset of the FRS in $Z$ corresponding to this choice of $k$:
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
+offset = -distance_scale*[initial_x;initial_y] ;
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the FRS
 plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
@@ -702,3 +706,4 @@ Now that we have the FRS computed, we can move on to online planning.
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
 
+$.$

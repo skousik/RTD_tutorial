@@ -71,7 +71,7 @@ plot(x,y,'b--','LineWidth',1.5)
 axis equal
 ```
 
-You should see the following:
+You should see something like this:
 
 <img src="images/image_for_example_1.png" width="500px"/>
 
@@ -171,7 +171,7 @@ v_des = 1.0 ;
 % add braking
 t_plan = 0.5 ; % s
 t_stop = 2.61 ; % s
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 ```
 
 Let's see what happens when we apply this to the TurtleBot:
@@ -191,7 +191,9 @@ plot(A)
 A.animate()
 ```
 
-You should see the TurtleBot start to track the desired trajectory, then brake to a stop.
+
+
+You should see the TurtleBot start to track the desired trajectory, then brake to a stop starting at $t_\text{plan}$ = 0.5 s.
 
 ### Example 3
 
@@ -205,6 +207,16 @@ example_3_braking_trajectory(w_des,v_des,initial_speed)
 ```
 
 
+
+Note that you can bypass the creation of a desired trajectory and then conversion into a braking trajectory with the following code:
+
+```matlab
+[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_f,t_stop,w_des,v_des)
+```
+
+
+
+This creates a trajectory of duration $t_{\text{stop}}$ that begins braking at $t_\text{plan}$.
 
 Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
 
@@ -272,3 +284,4 @@ Note that the acceleration gain $k_a$ and yaw rate gain $k_\omega$  determine th
 
 #### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
+$.$

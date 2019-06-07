@@ -165,10 +165,8 @@ classdef my_turtlebot_RTD_planner < planner
                 v_des = full(msubs(FRS_cur.v_des,FRS_cur.k,k_opt)) ;
                 
                 % create the desired trajectory
-                [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(FRS_cur.t_f,w_des,v_des) ;
-                
-                % create the trajectory with braking
-                [T,U,Z] = make_turtlebot_RTD_braking_traj(FRS_cur.t_plan,FRS_cur.t_stop,T_go,U_go,Z_go) ;
+                [T,U,Z] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
+                            FRS_cur.t_f,FRS_cur.t_stop,w_des,v_des) ;
             else
                 % first, check if there is enough of the past plan left to
                 % keep executing

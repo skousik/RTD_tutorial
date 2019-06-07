@@ -148,7 +148,7 @@ if ~isempty(k_opt)
     [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(FRS.t_f,w_des,v_des) ;
 
     % create the braking trajectory
-    [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(FRS.t_plan,FRS.t_stop,T_go,U_go,Z_go) ;
+    [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(FRS.t_plan,FRS.t_stop,T_go,U_go,Z_go) ;
     
     % move the robot
     A.move(T_brk(end),T_brk,U_brk,Z_brk) ;

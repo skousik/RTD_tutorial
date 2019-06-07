@@ -5,7 +5,8 @@ function example_3_braking_trajectory(w_des,v_des,v0)
 % trying to track it, then brake along it.
 %
 % Author: Shreyas Kousik
-% Date: 15 May 2019
+% Created: 15 May 2019
+% Updated: 7 June 2019
 
 %% setup
     % default inputs
@@ -45,7 +46,7 @@ function example_3_braking_trajectory(w_des,v_des,v0)
     % convert the desired trajectory to a braking trajectory that can be used
     % by the TurtleBot with the PD controller that we're using for RTD (NOTE
     % we don't have to use PD for RTD, but we've chosen it for this example)
-    [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+    [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
     % reset the agent to its initial speed
     z0 = [0;0;0;v0] ;

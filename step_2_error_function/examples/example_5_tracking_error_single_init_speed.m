@@ -80,7 +80,7 @@ for w_des = w_vec
         pos_des_2 = match_trajectories(T_err_2,T_go,pos_des) ;
 
         % get the braking trajectory to see tracking behavior
-        [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+        [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
         % reset the robot
         A.reset(z0)

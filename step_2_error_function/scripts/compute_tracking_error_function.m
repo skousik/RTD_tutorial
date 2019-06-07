@@ -1,5 +1,6 @@
 %% description
-% This function computes the tracking error function "g" for the turtlebot.
+%
+% This script computes the tracking error function "g" for the turtlebot.
 % See the paper "Bridging the Gap Between Safety and Real-Time Performance
 % in Receding-Horizon Trajectory Design for Mobile Robots" for an
 % explanation of the error function in Section 2.2.2. In particular, see
@@ -8,7 +9,8 @@
 % The paper is available here: https://arxiv.org/abs/1809.06746
 %
 % Author: Shreyas Kousik
-% Date: 15 May 2019
+% Created: 15 May 2019
+% Updated: 7 June 2019
 
 %% user parameters
 % initial condition bounds (recall that the state is (x,y,h,v), but the
@@ -87,7 +89,7 @@ for v0 = v0_vec
             pos_des_2 = match_trajectories(T_err_2,T_go,pos_des) ;
 
             % get the braking trajectory to see tracking behavior
-            [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+            [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
             % reset the robot
             A.reset(z0)

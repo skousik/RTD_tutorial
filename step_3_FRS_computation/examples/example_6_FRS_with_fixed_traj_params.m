@@ -140,7 +140,7 @@ z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -150,12 +150,13 @@ A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
+offset = -distance_scale*[initial_x;initial_y] ;
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the FRS
 plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
