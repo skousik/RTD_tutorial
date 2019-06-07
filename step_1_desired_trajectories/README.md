@@ -83,8 +83,10 @@ First, let's create a TurtleBot:
 A = turtlebot_agent() ;
 ```
 
+
+
 Note that this requires you to have the [simulator](github.com/skousik/simulator) repository on your MATLAB path. To use this 
-agent" representation of the TurtleBot, first give it an initial condition of <img src="/step_1_desired_trajectories/tex/a362f086bf1a268c373d882b17f36d6b.svg?invert_in_darkmode&sanitize=true" align=middle width=171.76163069999998pt height=24.65753399999998pt/>:
+"agent" representation of the TurtleBot, first give it an initial condition of <img src="/step_1_desired_trajectories/tex/a362f086bf1a268c373d882b17f36d6b.svg?invert_in_darkmode&sanitize=true" align=middle width=171.76163069999998pt height=24.65753399999998pt/>:
 
 ```matlab
 A.reset([0;0;0;0.5])
@@ -127,7 +129,7 @@ You should see something like this once the animation completes:
 
 <img src="images/image_for_example_2.png" width="500px"/>
 
-Notice that the robot did not perfectly track the desired trajectory. This is because its initial speed is different from its desired speed. Note that the agent uses a low-level controller for trajectory tracking that is explained a bit more below, in Appendix 1.B.
+Notice that the robot did not perfectly track the desired trajectory. This is because its initial speed is different from its desired speed. Note that the agent uses a low-level controller for trajectory tracking that is explained a bit more below, in [Appendix 1.B](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories#appendix-1b-low-level-controller).
 
 
 
@@ -135,7 +137,7 @@ Notice that the robot did not perfectly track the desired trajectory. This is be
 
 There is one key thing still missing. In every desired trajectory, we also need to include a **fail-safe maneuver**, which brings the robot to a known correct state. For the Turtlebot, staying stationary is always correct, since we only care about static obstacles. So, our fail-safe maneuver is braking to a stop. This means we need to include the distance required to stop in every desired trajectory.
 
-Code for this part is in `step1_trajectories/scripts/compute_planning_time.m`. Since that script is pretty involved, we just point out the highlights here.
+Code for this part is in `step_1_desired_trajectories/scripts/compute_planning_time.m`. Since that script is pretty involved, we just point out the highlights here.
 
 To create the fail-safe maneuver, we first need to understand how long it takes the robot to brake to a stop from its max speed, which we have picked as 1.5 m/s. We can command the robot to stop as follows:
 
@@ -147,7 +149,7 @@ A.reset([0;0;0;max_speed])
 A.stop(t_brake)
 ```
 
-Here, `t_brake` is the amount of time to apply the `stop` method, which commands 0 desired speed and yaw rate. It turns out that it takes about 2.61 s for the robot to come to a stop (which we count as a speed of < 1 mm/s).
+Here, `t_brake` is the amount of time to apply the `stop` method, which commands 0 desired speed and yaw rate. It turns out that it takes about 2.61 s for the robot to come to a stop (which we count as a speed of < 0.001 m/s).
 
 Now, we can transform a regular desired trajectory into a desired trajectory with braking:
 
@@ -204,11 +206,11 @@ Now that we have the robot tracking desired trajectories and braking, we can mov
 
 ## Appendix 1.A: Rigid Body Dynamics
 
-Most robots aren't just point masses. However, the dynamics we write for them, and the desired trajectories we create, are often defined for point masses. To make a point mass trajectory feasible for a robot with a **body** (which has nonzero volume), we then need to use tricks like dilating obstacles before we plan the trajectory.
+Most robots aren't just point masses. However, the dynamics we write for them, and the desired trajectories we create, are often defined for point masses. To make a point mass trajectory feasible for a robot with a **body** (which has nonzero volume), we then need to use tricks like dilating (i.e., expanding or buffering) obstacles before we plan the trajectory.
 
-With RTD, we try to get around this issue by representing the motion of the robot's entire body in the desired trajectory. Suppose that <img src="/step_1_desired_trajectories/tex/d5ce7af04a5f115d28ff733f2c68ecc4.svg?invert_in_darkmode&sanitize=true" align=middle width=115.60669395pt height=24.65753399999998pt/> are differentiable trajectories of the robot's center of mass, and <img src="/step_1_desired_trajectories/tex/63e302efe61ebe533fe9bf97f51c439a.svg?invert_in_darkmode&sanitize=true" align=middle width=98.43014444999997pt height=24.65753399999998pt/> is a differentiable trajectory of the robot's heading. Then, assuming the robot is a rigid body, we can describe the motion of any point <img src="/step_1_desired_trajectories/tex/bf4645e786baf289adfe68fe608d3e69.svg?invert_in_darkmode&sanitize=true" align=middle width=47.35926029999999pt height=24.7161288pt/> on the robot's body with the following differential equation:
+With RTD, we get around this issue by representing the motion of the robot's entire body in the desired trajectory. Suppose that <img src="/step_1_desired_trajectories/tex/d5ce7af04a5f115d28ff733f2c68ecc4.svg?invert_in_darkmode&sanitize=true" align=middle width=115.60669395pt height=24.65753399999998pt/> are differentiable trajectories of the robot's center of mass, and <img src="/step_1_desired_trajectories/tex/63e302efe61ebe533fe9bf97f51c439a.svg?invert_in_darkmode&sanitize=true" align=middle width=98.43014444999997pt height=24.65753399999998pt/> is a differentiable trajectory of the robot's heading. Then, assuming the robot is a rigid body, we can describe the motion of any point <img src="/step_1_desired_trajectories/tex/bf4645e786baf289adfe68fe608d3e69.svg?invert_in_darkmode&sanitize=true" align=middle width=47.35926029999999pt height=24.7161288pt/> on the robot's body with the following differential equation:
 <p align="center"><img src="/step_1_desired_trajectories/tex/c3cd2c7b7f2c9024a22d57bd8af387c0.svg?invert_in_darkmode&sanitize=true" align=middle width=293.07016035pt height=40.960527299999995pt/></p>
-Ideally, we would want to write down the dynamics of _every_ point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. In other words, we would need an infinite number of differential equations.
+Ideally, we would want to write down the dynamics of *every* point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. In other words, we would need an infinite number of differential equations.
 
 However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at <img src="/step_1_desired_trajectories/tex/477a717e18587a5e8605780ca167c322.svg?invert_in_darkmode&sanitize=true" align=middle width=36.07293689999999pt height=21.18721440000001pt/>, the robot's center of mass is at <img src="/step_1_desired_trajectories/tex/a903f939f6fb649debe1561ecbb18c66.svg?invert_in_darkmode&sanitize=true" align=middle width=52.29465614999999pt height=24.65753399999998pt/>, and the robot's initial heading is <img src="/step_1_desired_trajectories/tex/bab17f1c90dbcda2fd355c88f6baacb1.svg?invert_in_darkmode&sanitize=true" align=middle width=45.22819289999998pt height=22.831056599999986pt/>. Then, the following differential equation will produce the trajectory of any point <img src="/step_1_desired_trajectories/tex/bf4645e786baf289adfe68fe608d3e69.svg?invert_in_darkmode&sanitize=true" align=middle width=47.35926029999999pt height=24.7161288pt/> on the body:
 <p align="center"><img src="/step_1_desired_trajectories/tex/a58aa8b39e323167ed70b4ca0562c7f8.svg?invert_in_darkmode&sanitize=true" align=middle width=205.44055455pt height=39.452455349999994pt/></p>
@@ -223,8 +225,8 @@ Since the position and heading of the robot can be treated as starting at 0 for 
 
 ## Appendix 1.B: Low-Level Controller
 
-In `simulator`, each `agent` has the option of using a low-level controller (LLC), specified by the `agent.LLC` property. The Turtlebot agent in particular uses the `turtlebot_PD_LLC.m` LLC, which you can find in the [`simulator_files/`](https://github.com/skousik/turtlebot_RTD/tree/master/simulator_files) directory. This controller does PD (proportional-derivative) control about a desired trajectory's speed and yaw rate. The closed-loop system can be written:
-<p align="center"><img src="/step_1_desired_trajectories/tex/6d46dad425660c882873584aa5b756b3.svg?invert_in_darkmode&sanitize=true" align=middle width=276.83134545pt height=78.9048876pt/></p>
+In `simulator`, each `agent` has the option of using a low-level controller (LLC), specified by the `agent.LLC` property. The Turtlebot agent in particular uses the `turtlebot_PD_LLC.m` LLC, which you can find in the [`simulator_files/`](https://github.com/skousik/turtlebot_RTD/tree/master/simulator_files) directory of this tutorial repository. This controller does PD (proportional-derivative) control about a desired trajectory's speed and yaw rate. The closed-loop system can be written:
+<p align="center"><img src="/step_1_desired_trajectories/tex/46e582aec9cd4cb9b0aef679b516a387.svg?invert_in_darkmode&sanitize=true" align=middle width=276.83134545pt height=78.9048876pt/></p>
 given the desired speed and yaw rate commands. You can find this low-level controller in the agent with the following code:
 
 ```
