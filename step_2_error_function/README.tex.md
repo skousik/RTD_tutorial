@@ -215,6 +215,8 @@ We sample this range of speeds, and compute the tracking error as in Example 5 b
 
 
 
-This script fits $g$ as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of $v_0$. In the `step2_error_function/data/` folder, $g$ has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s. We'll use these error functions to compute an FRS over each initial speed range next.
+This script fits $g$ as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of $v_0$. In the `step2_error_function/data/` folder, $g$ has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s.
+
+We'll use the tracking error function $g$ to compute an FRS over each initial speed range next.
 
 #### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)

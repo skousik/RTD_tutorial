@@ -27,7 +27,9 @@ The good thing about this is, as we saw in the previous section, $I$ gives us a 
 
 The tricky part here is that, if an obstacle is a subset of $Z$, then probably contains infinitely many points (for example, if the obstacle is a polygon). But this means that we have to evaluate $I$ on an infinite number of points to find $k^*$. In fact, we can actually do that — check out [Section III-B here](https://arxiv.org/abs/1705.00091). However, doing this kind of evaluation is way too slow for real time planning.
 
-To avoid this evaluation of an infinite number of points, we instead prescribe a way to discretize obstacles into a finite number of points. This discretization is explained in excruciating detail in [Section 6 of this paper](https://arxiv.org/abs/1809.06746). The key takeaway is that, even though each obstacle is represented by only a finite number of points, _we keep the collision-free guarantee_ that was the whole point of computing the FRS with tracking error in the first place.
+To avoid this evaluation of an infinite number of points, we instead prescribe a way to discretize obstacles into a finite number of points. In other words, if $Z_{\text{obs}} \subset Z$ is an obstacle, we represent it with a set $\{z_1, z_2, \cdots, z_n\} \subset Z$.
+
+This discretization is explained in excruciating detail in [Section 6 of this paper](https://arxiv.org/abs/1809.06746). The key takeaway is that, even though each obstacle is represented by only a finite number of points, _we keep the collision-free guarantee_ that was the whole point of computing the FRS with tracking error in the first place.
 
 ### Goals for This Step
 
