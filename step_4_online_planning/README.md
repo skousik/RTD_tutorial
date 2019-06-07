@@ -423,4 +423,6 @@ end
 
 That ends this tutorial about Reachability-based Trajectory Design. Keep an eye out for updates to the extras section. Thanks for reading!
 
-[**Go back to tutorial home page**](https://github.com/skousik/RTD_tutorial).
+##### [**Go back to tutorial home page**](https://github.com/skousik/RTD_tutorial).
+
+##### [Learn how to write an RTD planner in excruciating detail](https://github.com/skousik/RTD_tutorial/tree/master/step_5_extras/extra_2_writing_an_RTD_planner)
