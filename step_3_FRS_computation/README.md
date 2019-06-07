@@ -290,7 +290,7 @@ initial_speed = 0.75 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the braking trajectory (i.e., include the fail-safe maneuver)
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -303,12 +303,13 @@ Now, we can visualize the output:
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
+offset = -distance_scale*[initial_x;initial_y] ;
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the FRS
 plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
@@ -321,7 +322,9 @@ You should see something like this:
 
 <img src="images/image_for_example_6.png" width="600px"/>
 
-The green contour is the level set <img src="/step_3_FRS_computation/tex/6b78aa0639dad385795b3d822af3ce7d.svg?invert_in_darkmode&sanitize=true" align=middle width=59.805858749999985pt height=24.65753399999998pt/>. The dark blue circle at <img src="/step_3_FRS_computation/tex/e660f3b58b414524ec6f827411021073.svg?invert_in_darkmode&sanitize=true" align=middle width=36.52973609999999pt height=24.65753399999998pt/> is the initial condition set <img src="/step_3_FRS_computation/tex/db85bd6dfbbcc6817fc7960910b43296.svg?invert_in_darkmode&sanitize=true" align=middle width=17.77402769999999pt height=22.465723500000017pt/>. Notice that both the FRS and the initial condition set are unscaled by `distance_scale` and unshifted by `initial_x` and `initial_y` by using the `'Scale'` and `'Offset'` arguments in the plotting function.
+
+
+The green contour is the level set <img src="/step_3_FRS_computation/tex/6b78aa0639dad385795b3d822af3ce7d.svg?invert_in_darkmode&sanitize=true" align=middle width=59.805858749999985pt height=24.65753399999998pt/>. The dark blue circle at the origin is the initial condition set <img src="/step_3_FRS_computation/tex/db85bd6dfbbcc6817fc7960910b43296.svg?invert_in_darkmode&sanitize=true" align=middle width=17.77402769999999pt height=22.465723500000017pt/>. Notice that both the FRS and the initial condition set are unscaled by `distance_scale` and unshifted by `initial_x` and `initial_y` by using the `'Scale'` and `'Offset'` arguments in the plotting function.
 
 The desired trajectory for <img src="/step_3_FRS_computation/tex/f063d7f0ae9a5f520626fda6c9fa41bc.svg?invert_in_darkmode&sanitize=true" align=middle width=170.94760814999998pt height=24.65753399999998pt/> is shown as the blue dashed line. Notice that it fits entirely inside the FRS contour. In other words, the trajectory-producing model is indeed inside the FRS.
 
@@ -459,7 +462,7 @@ Notice that these dynamics are now nonlinear with respect to our indeterminates!
 
 #### Example 7.3: Set up the Tracking Error Function
 
-Next, we have to define <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>. First, let's get <img src="/step_3_FRS_computation/tex/08926724d3ef194857807025173aaf91.svg?invert_in_darkmode&sanitize=true" align=middle width=15.29495549999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6b6744ce28bcf96f11b21c52f6c47c2f.svg?invert_in_darkmode&sanitize=true" align=middle width=14.92018934999999pt height=14.15524440000002pt/>. Recall that they are both degree 3 polynomials of time, so we'll first create monomials <img src="/step_3_FRS_computation/tex/c56e4e18ef488354b6ab1f706c305395.svg?invert_in_darkmode&sanitize=true" align=middle width=61.872158699999986pt height=26.76175259999998pt/>:
+Next, we have to define <img src="/step_3_FRS_computation/tex/af543e4935b79ac4b4967e46a594d4c2.svg?invert_in_darkmode&sanitize=true" align=middle width=82.29823964999999pt height=24.65753399999998pt/>. First, let's get <img src="/step_3_FRS_computation/tex/08926724d3ef194857807025173aaf91.svg?invert_in_darkmode&sanitize=true" align=middle width=15.29495549999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6b6744ce28bcf96f11b21c52f6c47c2f.svg?invert_in_darkmode&sanitize=true" align=middle width=14.92018934999999pt height=14.15524440000002pt/>. Recall that they are both degree 3 polynomials of time, so we'll first create monomials <img src="/step_3_FRS_computation/tex/c56e4e18ef488354b6ab1f706c305395.svg?invert_in_darkmode&sanitize=true" align=middle width=61.872158699999986pt height=26.76175259999998pt/>:
 
 ```matlab
 t_mon = [t^3 t^2 t^1 1] ; % this order matches the order of the g coefficients
@@ -562,7 +565,7 @@ z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
 
 % create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -575,12 +578,13 @@ Finally, plot the subset of the FRS in <img src="/step_3_FRS_computation/tex/5b5
 figure(1) ; clf ; axis equal ; hold on ;
 
 % plot the initial condition
+offset = -distance_scale*[initial_x;initial_y] ;
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the FRS
 plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',-[initial_x;initial_y],'Scale',distance_scale)
+    'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
 plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
@@ -651,4 +655,3 @@ The biggest FRS is degree 4. The middle one is degree 6. The smallest one is deg
 Now that we have the FRS computed, we can move on to online planning.
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
-
