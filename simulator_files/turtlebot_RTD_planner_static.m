@@ -80,7 +80,11 @@ classdef turtlebot_RTD_planner_static < planner
             %   3. give the high level planner the global goal info
             %   4. decompose the FRS polynomial into a usable form
             
+            P.vdisp('Running setup',3)
+            
         %% 1. compute point spacing
+            P.vdisp('Computing point spacing',4)
+        
             bbar = agent_info.footprint ;
             b = P.buffer ;
             
@@ -92,6 +96,8 @@ classdef turtlebot_RTD_planner_static < planner
             P.point_spacing = compute_turtlebot_point_spacings(bbar,P.buffer) ;
             
         %% 2. set up world boundaries as an obstacle
+            P.vdisp('Setting up world bounds as an obstacle',4)
+        
             P.bounds = world_info.bounds + P.buffer.*[1 -1 1 -1] ;
             
             % create world bounds as an obstacle; note this passes the
@@ -108,10 +114,14 @@ classdef turtlebot_RTD_planner_static < planner
             P.bounds_as_obstacle = B ;
             
         %% 3. set up high level planner
+            P.vdisp('Setting up high-level planner',4)
+            
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             
         %% 4. process the FRS polynomial
+            P.vdisp('Processing FRS polynomial',4)
+            
             P.FRS_polynomial_structure = cell(1,3) ;
             
             for idx = 1:3
@@ -122,22 +132,28 @@ classdef turtlebot_RTD_planner_static < planner
             end
             
         %% 5. initialize the current plan as empty
+            P.vdisp('Initializing current plan',4)
+            
             P.current_plan.T = [] ;
             P.current_plan.U = [] ;
             P.current_plan.Z = [] ;
         end
         
     %% replan
-        function [T,U,Z] = replan(P,A,W)
+        function [T,U,Z] = replan(P,agent_info,world_info)
             % [T,U,Z] = P.replan(agent_info,world_info)
             %
             % This is the heart of the RTD planner. In this method, we
+            
+            P.vdisp('Planning!',3)
             
             % start a timer to enforce the planning timeout P.t_plan
             start_tic = tic ;
             
         %% 1. determine the current FRS based on the agent
-            agent_state = A.state(:,end) ; % (x,y,h,v)
+            P.vdisp('Determining current FRS',4)
+
+            agent_state = agent_info.state(:,end) ; % (x,y,h,v)
             v_cur = agent_state(4) ;
             
             % pick fastest FRS for current speed
@@ -152,7 +168,9 @@ classdef turtlebot_RTD_planner_static < planner
             FRS_cur = P.FRS{current_FRS_index} ;
             
         %% 2. process obstacles
-            O = W.obstacles ;
+            P.vdisp('Processing obstacles',4)
+        
+            O = world_info.obstacles ;
             
             % add world bounds as obstacle
             O = [O, nan(2,1), P.bounds_as_obstacle] ;
@@ -167,8 +185,10 @@ classdef turtlebot_RTD_planner_static < planner
             P.current_obstacles_in_FRS_coords = O_FRS ;
         
         %% 3. create the cost function for fmincon
+            P.vdisp('Creating cost function',4)
+            
             % make a waypoint
-            z_goal = P.HLP.get_waypoint(A,W,P.lookahead_distance) ;
+            z_goal = P.HLP.get_waypoint(agent_info,world_info,P.lookahead_distance) ;
             P.current_waypoint = z_goal ;
             
             % put waypoint into FRS frame to use for planning
@@ -180,6 +200,8 @@ classdef turtlebot_RTD_planner_static < planner
                             start_tic,P.t_plan) ;
         
         %% 4. create the constraints for fmincon
+            P.vdisp('Creating constraints',4)
+        
             % create nonlinear constraints from the obstacles
             if ~isempty(O_FRS)
                 % remove NaNs
@@ -202,7 +224,7 @@ classdef turtlebot_RTD_planner_static < planner
             else
                 % if there are no obstacles then we don't need to consider
                 % any constraints
-                P.trajopt_problem.nonlcon_function = [] ;
+                nonlcon = [] ;
             end
             
             % create bounds for yaw rate
@@ -220,6 +242,8 @@ classdef turtlebot_RTD_planner_static < planner
             k_bounds = [k_1_bounds ; k_2_bounds] ;
             
         %% 5. call trajectory optimization
+            P.vdisp('Running trajectory optimization',4)
+            
             % create initial guess
             initial_guess = zeros(2,1) ;
 
@@ -250,8 +274,11 @@ classdef turtlebot_RTD_planner_static < planner
             end
         
         %% 6. make the new plan or continue the old plan
+            P.vdisp('Creating new plan',4)
+            
             % if fmincon was successful, create a new plan
             if exitflag > 0
+                P.vdisp('New plan successfully found!',5)
                 w_des = full(msubs(FRS_cur.w_des,FRS_cur.k,k_opt)) ;
                 v_des = full(msubs(FRS_cur.v_des,FRS_cur.k,k_opt)) ;
 
@@ -263,6 +290,8 @@ classdef turtlebot_RTD_planner_static < planner
             else
             % if fmincon was unsuccessful, try to continue executing the
             % previous plan
+                P.vdisp('Continuing previous plan!',5)
+            
                 % first, check if there is enough of the past plan left to
                 % keep executing
                 T_old = P.current_plan.T ;
@@ -284,18 +313,18 @@ classdef turtlebot_RTD_planner_static < planner
                     T = T_old(T_log) - P.t_move ;
                     U = U_old(:,T_log) ;
                     Z = Z_old(:,T_log) ;
-                    
-                    % make sure the new plan is long enough
-                    if T(end) < P.t_move
-                        T = [T, P.t_move] ;
-                        U = [U, zeros(2,1)] ;
-                        Z = [Z, [Z(1:3,end);0] ] ;
-                    end
                 else
                     % create stopped control input
                     T = [0, 2*P.t_move] ;
                     U = zeros(2,2) ;
                     Z = [repmat(agent_state(1:3),1,2) ; zeros(1,2)] ;
+                end
+                
+                % make sure the new plan is long enough
+                if T(end) < P.t_move
+                    T = [T, P.t_move] ;
+                    U = [U, zeros(2,1)] ;
+                    Z = [Z, [Z(1:3,end);0] ] ;
                 end
             end
             
@@ -307,6 +336,8 @@ classdef turtlebot_RTD_planner_static < planner
         
         %% plotting
         function plot(P,~)
+            P.vdisp('Plotting!',8)
+            
             hold_check = false ;
             if ~ishold
                 hold_check = true ;
