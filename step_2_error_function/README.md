@@ -72,7 +72,7 @@ Now, make the desired trajectory, and include braking for the robot.
 [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 ```
 
 Track the desired trajectory:
@@ -192,8 +192,9 @@ We sample this range of speeds, and compute the tracking error as in Example 5 b
 
 
 
-This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: 0.0 — 0.5 m/s, 0.5 — 1.0​ m/s, and 1.0 — 1.5 m/s.
+This script fits <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> as a polynomial, and saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v0_0.5_to_1.0.mat` by default. The filename changes depending on the range of <img src="/step_2_error_function/tex/751613a1a4da78db7647a339cbf261c3.svg?invert_in_darkmode&sanitize=true" align=middle width=14.520613799999989pt height=14.15524440000002pt/>. In the `step2_error_function/data/` folder, <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> has been precomputed for three ranges: <img src="/step_2_error_function/tex/c4700c9a28332f587a2742c1811a32ff.svg?invert_in_darkmode&sanitize=true" align=middle width=62.10047744999999pt height=21.18721440000001pt/> m/s, <img src="/step_2_error_function/tex/01909b179a6e1f6050dd426d4f7195e4.svg?invert_in_darkmode&sanitize=true" align=middle width=62.10047744999999pt height=21.18721440000001pt/> m/s, and <img src="/step_2_error_function/tex/d0231ad6c4ea2c12b90e4e356a5c0628.svg?invert_in_darkmode&sanitize=true" align=middle width=62.10047744999999pt height=21.18721440000001pt/> m/s.
 
 We'll use the tracking error function <img src="/step_2_error_function/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/> to compute an FRS over each initial speed range next.
 
 #### [Next: computing the FRS](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation)
+
