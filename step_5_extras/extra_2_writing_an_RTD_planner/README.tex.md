@@ -589,5 +589,4 @@ This concludes the tutorial for how to write an RTD planner. Certainly you can g
 
 ##### [Go to tutorial home page](https://github.com/skousik/RTD_tutorial)
 
-$.$
-
+$\LaTeX$ compiled with TeXify.

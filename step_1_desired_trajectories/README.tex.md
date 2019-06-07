@@ -261,7 +261,7 @@ $$
 \begin{bmatrix} v\cos\theta \\
 v\sin\theta \\
 k_\theta\cdot(\theta_{\mathrm{des}} - \theta) + k_\omega\cdot\omega_{\mathrm{des}} \\
-k_v\cdot(v - v_{\mathrm{des}}) + k_a\cdot a_{\mathrm{des}}\end{bmatrix},
+k_v\cdot(v - v_{\mathrm{des}}) + k_a\cdot a_{\mathrm{des}}\end{bmatrix}
 \end{align}
 $$
 given the desired speed and yaw rate commands. You can find this low-level controller in the agent with the following code:
@@ -283,5 +283,3 @@ A.LLC.accel_gain = 0 ;
 Note that the acceleration gain $k_a$ and yaw rate gain $k_\omega$  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
 
 #### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
-
-$.$

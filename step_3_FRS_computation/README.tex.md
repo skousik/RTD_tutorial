@@ -501,7 +501,7 @@ Notice that these dynamics are now nonlinear with respect to our indeterminates!
 
 #### Example 7.3: Set up the Tracking Error Function
 
-Next, we have to define $g$. First, let's get $g_x$ and $g_y$. Recall that they are both degree 3 polynomials of time, so we'll first create monomials $1, t, t^2, t^3$:
+Next, we have to define $g = (g_x, g_y )$. First, let's get $g_x$ and $g_y$. Recall that they are both degree 3 polynomials of time, so we'll first create monomials $1, t, t^2, t^3$:
 
 ```matlab
 t_mon = [t^3 t^2 t^1 1] ; % this order matches the order of the g coefficients
@@ -705,5 +705,3 @@ The biggest FRS is degree 4. The middle one is degree 6. The smallest one is deg
 Now that we have the FRS computed, we can move on to online planning.
 
 #### [Next step: online planning](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning)
-
-$.$

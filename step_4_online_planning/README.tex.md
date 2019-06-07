@@ -17,13 +17,13 @@ Recall that RTD uses a trajectory parameter space $K$ to specify desired traject
 Now, to pick a particular $k \in K$ at each planning iteration, given an arbitrary cost function $J: K \to \mathbb{R}$, we attempt to solve the following optimization problem:
 $$
 \begin{align}
-k^* = \mathrm{argmin}_k \{J(k)~|~I(z,k) < 1\ \forall\ z \in \mathrm{obstacles}\}
+k_{\text{opt}} = \mathrm{argmin}_k \{J(k)~|~I(z,k) < 1\ \forall\ z \in \mathrm{obstacles}\}
 \end{align}.
 $$
 
 
 
-The good thing about this is, as we saw in the previous section, $I$ gives us a _conservative_ approximation of the FRS. So, as long as the constraint $I(z,k^*) < 1$ is obeyed for all $z$ in any obstacle, then we can prove that $k^*$ is a collision-free trajectory (see [Lemma 15 on page 10 of this paper](https://arxiv.org/abs/1809.06746)).
+The good thing about this is, as we saw in the previous section, $I$ gives us a _conservative_ approximation of the FRS. So, as long as the constraint $I(z,k_{\text{opt}}) < 1$ is obeyed for all $z$ in any obstacle, then we can prove that $k^*$ is a collision-free trajectory (see [Lemma 15 on page 10 of this paper](https://arxiv.org/abs/1809.06746)).
 
 The tricky part here is that, if an obstacle is a subset of $Z$, then probably contains infinitely many points (for example, if the obstacle is a polygon). But this means that we have to evaluate $I$ on an infinite number of points to find $k^*$. In fact, we can actually do that — check out [Section III-B here](https://arxiv.org/abs/1705.00091). However, doing this kind of evaluation is way too slow for real time planning.
 
