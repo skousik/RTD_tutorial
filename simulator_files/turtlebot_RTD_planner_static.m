@@ -80,7 +80,7 @@ classdef turtlebot_RTD_planner_static < planner
             %   3. give the high level planner the global goal info
             %   4. decompose the FRS polynomial into a usable form
             
-            % compute point spacing
+        %% 1. compute point spacing
             bbar = agent_info.footprint ;
             b = P.buffer ;
             
@@ -91,7 +91,7 @@ classdef turtlebot_RTD_planner_static < planner
             
             P.point_spacing = compute_turtlebot_point_spacings(bbar,P.buffer) ;
             
-            % set up world boundaries as an obstacle
+        %% 2. set up world boundaries as an obstacle
             P.bounds = world_info.bounds + P.buffer.*[1 -1 1 -1] ;
             
             % create world bounds as an obstacle; note this passes the
@@ -107,11 +107,13 @@ classdef turtlebot_RTD_planner_static < planner
             
             P.bounds_as_obstacle = B ;
             
-            % set up high level planner
+        %% 3. set up high level planner
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             
-            % process the FRS polynomial
+        %% 4. process the FRS polynomial
+            P.FRS_polynomial_structure = cell(1,3) ;
+            
             for idx = 1:3
                 I = P.FRS{idx}.FRS_polynomial - 1 ;
                 z = P.FRS{idx}.z ;
@@ -119,7 +121,7 @@ classdef turtlebot_RTD_planner_static < planner
                 P.FRS_polynomial_structure{idx} = get_FRS_polynomial_structure(I,z,k) ;
             end
             
-            % initialize the current plan as empty
+        %% 5. initialize the current plan as empty
             P.current_plan.T = [] ;
             P.current_plan.U = [] ;
             P.current_plan.Z = [] ;
