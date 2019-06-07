@@ -38,7 +38,7 @@ classdef turtlebot_RTD_planner_static < planner
         
         % plan handling
         current_waypoint
-        lookahead_distance
+        lookahead_distance = 1.5 ;
     end
     
     %% methods
@@ -55,12 +55,10 @@ classdef turtlebot_RTD_planner_static < planner
             name = 'TurtleBot RTD Planner' ;
             buffer = 1 ;
             HLP = straight_line_HLP() ; % high level planner
-            lookahead_distance = 1.5 ; % this is used to create waypoints
             
             % parse the input arguments; these should be given in the
             % format 'property1', value1, 'property2', value2,...
             P = parse_args(P,'name',name,'buffer',buffer,'HLP',HLP,...
-                           'lookahead_distance',lookahead_distance,...
                            varargin{:}) ;
             
             % load FRS files
