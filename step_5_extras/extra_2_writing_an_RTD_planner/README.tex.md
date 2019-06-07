@@ -2,7 +2,7 @@
 
 ##### [Go to tutorial home page](https://github.com/skousik/RTD_tutorial)
 
-Here, we take `example_10_trajectory_optimization.m` from [Step 4](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning) and turn it into a planner object for the [simulator](https://github.com/skousik/simulator). The file we're writing in particular is called `turtlebot_RTD_planner_static.m`, which is in the [simulator files](https://github.com/skousik/RTD_tutorial/tree/master/simulator_files) folder.
+Here, we take `example_10_trajectory_optimization.m` from [Step 4](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning) and turn it into a planner object for the [simulator](https://github.com/skousik/simulator). The file we're writing in particular is called `my_turtlebot_RTD_planner`, which is a barebones copy of `turtlebot_RTD_planner_static.m`. Both of these files are in the [simulator files](https://github.com/skousik/RTD_tutorial/tree/master/simulator_files) folder.
 
 The `simulator` requires three things to run. An `agent`, which is a representation of a robot; a `planner`, which is described below; and a `world` full of obstacles that the agent/robot lives in, and the planner must deal with.
 
