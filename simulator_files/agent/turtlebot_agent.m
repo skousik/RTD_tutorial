@@ -103,6 +103,7 @@ classdef turtlebot_agent < RTD_agent_2D
             
             % get nominal control inputs
             u = A.LLC.get_control_inputs(A,t,z,T,U,Z) ;
+            u(isnan(u)) = 0 ; % safety check
             w_des = u(1) ;
             a_des = u(2) ;
             
