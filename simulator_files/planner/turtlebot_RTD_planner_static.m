@@ -375,5 +375,9 @@ classdef turtlebot_RTD_planner_static < planner
                 hold off
             end
         end
+        
+        function plot_at_time(P,~)
+            P.vdisp('No plotting at current time defined.',10)
+        end
     end
 end

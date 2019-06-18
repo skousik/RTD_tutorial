@@ -19,7 +19,7 @@ t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
 t_move = 0.5 ;
 
 % simulation
-verbose_level = 10 ;
+verbose_level = 5 ;
 
 %% automated from here
 A = turtlebot_agent ;
