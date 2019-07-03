@@ -54,7 +54,7 @@ classdef turtlebot_RTD_planner_static < planner
             % properties are defined in the planner "setup" method
             name = 'TurtleBot RTD Planner' ;
             buffer = 1 ;
-            HLP = straight_line_HLP() ; % high level planner
+            HLP = straight_line_HLP() ; % default high level planner
             
             % parse the input arguments; these should be given in the
             % format 'property1', value1, 'property2', value2,...
@@ -118,6 +118,14 @@ classdef turtlebot_RTD_planner_static < planner
             
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
+            
+            % try giving the HLP bounds
+            try
+                P.HLP.bounds = P.bounds ;
+            catch
+                P.vdisp('High level planner has no bounds field.',9) ;
+            end
+            
             
         %% 4. process the FRS polynomial
             P.vdisp('Processing FRS polynomial',4)
