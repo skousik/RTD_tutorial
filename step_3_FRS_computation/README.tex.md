@@ -144,7 +144,7 @@ The decision variables in this program are the functions $V$ and $I$. This is di
 
 Also, note that the _total derivative_ of $V$ with respect to $f$ is given by:
 $$
-\mathcal{L}_fV(t,z) = \frac{\partial}{\partial t} V(t,z) + \frac{\partial}{\partial x}V(t,z)\cdot f_x(z,k) + \frac{\partial}{\partial x}V(t,z)\cdot f_y(z,k),
+\mathcal{L}_fV(t,z) = \frac{\partial}{\partial t} V(t,z) + \frac{\partial}{\partial x}V(t,z)\cdot f_x(z,k) + \frac{\partial}{\partial y}V(t,z)\cdot f_y(z,k),
 $$
 
 
@@ -179,8 +179,8 @@ $$
 But, we also want to scale $T$ to $[0,1]$ and $Z$ to $[-1,1]^2 \subset \mathbb{R}^2$. So, we'll specify the sets like this:
 
 ```matlab
-hT = t * (1 - t) ;
-hZ = (z - [-1;-1]) .* ([1;1] - z) ;
+h_T = t * (1 - t) ;
+h_Z = (z - [-1;-1]) .* ([1;1] - z) ;
 ```
 
 
