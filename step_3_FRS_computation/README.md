@@ -124,7 +124,7 @@ For this example, we don't care about tracking error. So, we just want to find e
 The decision variables in this program are the functions <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/>. This is different from the notation <img src="/step_3_FRS_computation/tex/7676df17927aeb8cf3c0529814b86278.svg?invert_in_darkmode&sanitize=true" align=middle width=40.86000434999999pt height=24.65753399999998pt/> for the same decision variables in the [paper](https://arxiv.org/pdf/1809.06746.pdf) that we're referencing, to avoid confusion with the state <img src="/step_3_FRS_computation/tex/6c4adbc36120d62b98deef2a20d5d303.svg?invert_in_darkmode&sanitize=true" align=middle width=8.55786029999999pt height=14.15524440000002pt/> and control input <img src="/step_3_FRS_computation/tex/ae4fb5973f393577570881fc24fc2054.svg?invert_in_darkmode&sanitize=true" align=middle width=10.82192594999999pt height=14.15524440000002pt/>. We're using <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> to denote what is very similar to a [Lyapunov function](https://en.wikipedia.org/wiki/Lyapunov_function) for our dynamics, and <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> to denote what is very similar to an [indicator function](https://en.wikipedia.org/wiki/Indicator_function) on our FRS.
 
 Also, note that the _total derivative_ of <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> with respect to <img src="/step_3_FRS_computation/tex/190083ef7a1625fbc75f243cffb9c96d.svg?invert_in_darkmode&sanitize=true" align=middle width=9.81741584999999pt height=22.831056599999986pt/> is given by:
-<p align="center"><img src="/step_3_FRS_computation/tex/02adb0ec50c9f20dc425f22afae58cdb.svg?invert_in_darkmode&sanitize=true" align=middle width=473.64332069999995pt height=33.81208709999999pt/></p>
+<p align="center"><img src="/step_3_FRS_computation/tex/f0773f5b19affaedaaacc089940e33ba.svg?invert_in_darkmode&sanitize=true" align=middle width=472.89755535pt height=37.0084374pt/></p>
 
 
 
@@ -153,8 +153,8 @@ The second step is to specify the spaces <img src="/step_3_FRS_computation/tex/2
 But, we also want to scale <img src="/step_3_FRS_computation/tex/2f118ee06d05f3c2d98361d9c30e38ce.svg?invert_in_darkmode&sanitize=true" align=middle width=11.889314249999991pt height=22.465723500000017pt/> to <img src="/step_3_FRS_computation/tex/acf5ce819219b95070be2dbeb8a671e9.svg?invert_in_darkmode&sanitize=true" align=middle width=32.87674994999999pt height=24.65753399999998pt/> and <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> to <img src="/step_3_FRS_computation/tex/02365d9a1eafb4fa93ec35acf8c9025d.svg?invert_in_darkmode&sanitize=true" align=middle width=93.37899944999998pt height=26.76175259999998pt/>. So, we'll specify the sets like this:
 
 ```matlab
-hT = t * (1 - t) ;
-hZ = (z - [-1;-1]) .* ([1;1] - z) ;
+h_T = t * (1 - t) ;
+h_Z = (z - [-1;-1]) .* ([1;1] - z) ;
 ```
 
 
