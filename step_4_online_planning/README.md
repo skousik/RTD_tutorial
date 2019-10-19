@@ -185,7 +185,8 @@ initial_speed = 0.49 ; % m/s
 FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
 
 A = turtlebot_agent ;
-A.reset([0;0;0;initial_speed])
+z_initial = [0;0;0] ; % initial (x,y,h)
+A.reset([z_initial;initial_speed])
 ```
 
 Now we'll create the desired waypoint:
@@ -234,8 +235,8 @@ We pass this to `fmincon` in the example script as follows (run these lines):
 % create waypoint from desired location
 z_goal = [x_des; y_des] ;
 
-% transform waypoint to FRS coordinates
-z_goal_local = FRS_to_world(z_goal,A.state(:,end),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
+% transform waypoint to robot's local coordinates
+z_goal_local = world_to_local(z_goal,A.state(:,end),0,0,1) ;
 
 % use waypoint to make cost function
 cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
