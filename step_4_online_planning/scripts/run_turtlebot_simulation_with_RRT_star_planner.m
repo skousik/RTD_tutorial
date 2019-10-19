@@ -1,10 +1,9 @@
 %% description
 % This script runs a simulation with the TurtleBot in the simulator
-% framework, using RTD to plan online.
+% framework, using RRT* to plan online.
 %
 % Author: Shreyas Kousik
-% Created: 6 June 2019
-% Updated: 19 Oct 2019
+% Created: 19 Oct 2019
 %
 %% user parameters
 % world
@@ -24,13 +23,11 @@ verbose_level = 5 ;
 %% automated from here
 A = turtlebot_agent ;
 
-P = turtlebot_RTD_planner_static('verbose',verbose_level,'buffer',buffer,...
-                                 't_plan',t_plan,'t_move',t_move) ;
-                             
-% P = turtlebot_RTD_planner_static_subclass('verbose',verbose_level,'buffer',buffer,...
-%                                  't_plan',t_plan,'t_move',t_move) ;
-                             
-% P.HLP = RRT_star_HLP() ;
+% this is needed to the agent to track the RRT* output
+A.LLC.yaw_gain = 10 ;
+
+P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',0.1,...
+    't_plan',t_plan,'t_move',t_move) ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
                      'verbose',verbose_level,'goal_radius',goal_radius,...

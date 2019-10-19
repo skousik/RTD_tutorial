@@ -1,6 +1,7 @@
 classdef turtlebot_PD_LLC < low_level_controller
     properties
         % control gains
+        position_gain = 1 ;
         speed_gain = 3 ;
         accel_gain = 0 ;
         yaw_gain = 0 ;
