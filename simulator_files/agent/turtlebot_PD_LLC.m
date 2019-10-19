@@ -1,5 +1,8 @@
 classdef turtlebot_PD_LLC < low_level_controller
     properties
+        % lookahead time
+        lookahead_time = 0 ;
+        
         % control gains
         position_gain = 1 ;
         speed_gain = 3 ;
@@ -24,17 +27,20 @@ classdef turtlebot_PD_LLC < low_level_controller
             h_cur = z_cur(A.heading_index) ;
             v_cur = z_cur(A.speed_index) ;
             
+            % get time along traj to use for feedback
+            t_fdbk = min(t_cur + LLC.lookahead_time, T_des(end)) ;
+            
             % get desired state and inputs (assumes zero-order hold)
             if isempty(Z_des)
                 % if no desired trajectory is passed in, then we assume
                 % that we are emergency braking
-                u_des = match_trajectories(t_cur,T_des,U_des,'previous') ;
+                u_des = match_trajectories(t_fdbk,T_des,U_des,'previous') ;
                 v_des = 0 ;
                 h_des = h_cur ;
             else
                 % otherwise, we are doing feedback about a desired
                 % trajectory
-                [u_des,z_des] = match_trajectories(t_cur,T_des,U_des,T_des,Z_des,'previous') ;
+                [u_des,z_des] = match_trajectories(t_fdbk,T_des,U_des,T_des,Z_des,'previous') ;
                 v_des = z_des(A.speed_index) ;
                 h_des = z_des(A.heading_index) ;
             end

@@ -142,6 +142,7 @@ Now, we'll create an agent and modify it's low-level controller so it can do fee
 ```matlab
 A = turtlebot_agent ;
 A.LLC.yaw_gain = 10 ;
+A.LLC.lookahead_time = 0.05 ;
 ```
 
 

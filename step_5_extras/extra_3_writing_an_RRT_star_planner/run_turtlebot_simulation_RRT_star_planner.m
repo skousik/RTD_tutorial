@@ -6,6 +6,9 @@
 % Created: 19 Oct 2019
 %
 %% user parameters
+% agent
+desired_speed = 1 ; % m/s
+
 % world
 obstacle_size_bounds = [0.2, 0.3] ; % side length [min, max]
 N_obstacles = 7 ;
@@ -25,9 +28,10 @@ A = turtlebot_agent ;
 
 % this is needed to the agent to track the RRT* output
 A.LLC.yaw_gain = 10 ;
+A.LLC.lookahead_time = 0.05 ;
 
 P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',0.1,...
-    't_plan',t_plan,'t_move',t_move) ;
+    't_plan',t_plan,'t_move',t_move,'desired_speed',desired_speed) ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
                      'verbose',verbose_level,'goal_radius',goal_radius,...
