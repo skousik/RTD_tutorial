@@ -22,8 +22,8 @@ classdef turtlebot_RRT_star_planner < planner
     
 	methods
 		function P = turtlebot_RRT_star_planner(varargin)
-    	% set up default properties and construct planner
-    	P = parse_args(P,'buffer',0,varargin{:}) ;
+			% set up default properties and construct planner
+			P = parse_args(P,'buffer',0,varargin{:}) ;
 			P.HLP = RRT_star_HLP() ;
 		end % constructor
 
