@@ -36,6 +36,7 @@ end
     
 % create turtlebot
 A = turtlebot_agent ;
+z_initial = [0;0;0] ; % initial (x,y,h)
 A.reset([0;0;0;initial_speed])
 
 % create obstacle
@@ -46,7 +47,7 @@ O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
 z_goal = [x_des; y_des] ;
 
 % transform waypoint to FRS coordinates
-z_goal_local = FRS_to_world(z_goal,A.state(:,end),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
+z_goal_local = world_to_local(A.state(:,end),z_goal,0,0,1) ;
 
 % use waypoint to make cost function
 cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
