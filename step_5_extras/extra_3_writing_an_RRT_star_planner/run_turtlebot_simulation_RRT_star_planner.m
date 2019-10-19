@@ -13,7 +13,7 @@ bounds = [-4,4,-2,2] ;
 goal_radius = 0.5 ;
 
 % planner
-buffer = 0.05 ; % m
+buffer = 0.1 ; % m
 t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
 t_move = 0.5 ;
 
@@ -37,4 +37,4 @@ S = simulator(A,W,P,'allow_replan_errors',true,'verbose',verbose_level,...
               'max_sim_time',30,'max_sim_iterations',60) ;
 
 %% run simulation
-S.run ;
+S.run() ;

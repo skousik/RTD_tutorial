@@ -15,7 +15,7 @@ classdef turtlebot_RRT_star_planner < planner
     methods
         %% constructor
         function P = turtlebot_RRT_star_planner(varargin)
-            % set up default properties and construct planer
+            % set up default properties and construct planner
             P = parse_args(P,'buffer',0,varargin{:}) ;
             
             % set high-level planner
@@ -81,7 +81,8 @@ classdef turtlebot_RRT_star_planner < planner
             N = size(X,2) ;
             Z = [X ; h ; s.*ones(1,N)] ;
             
-            % generate inputs
+            % generate inputs (these are dummy inputs, since we'll just
+            % track the trajectory with feedback)
             U = zeros(2,N) ;
             
             % save current best path and obstacles
