@@ -31,6 +31,10 @@ classdef turtlebot_agent < RTD_agent_2D
         % videos, where it can spin and accelerate really fast)
         max_yaw_rate = 2.0 ; % rad/s     
         max_accel = 2.0 ; % m/s^2   
+        
+        % integrator type, to allow for fixed time step integration
+        integrator_type = 'ode45' ; % choose 'ode45' or 'ode4'
+        integrator_time_discretization = 0.01 ; % for ode4
     end
     
     methods
@@ -119,6 +123,25 @@ classdef turtlebot_agent < RTD_agent_2D
             
             % return state derivative
             zd = [xd ; yd ; hd ; vd] ;
+        end
+        
+        %% integrator options
+        function [tout,zout] = integrator(A,fun,tspan,z0)
+            switch A.integrator_type
+                case 'ode45'
+                    [tout,zout] = ode45(@(t,z) fun(t,z),tspan,z0(:)) ;
+                    tout = tout' ;
+                case {'ode4','RK4'}
+                    dt = A.integrator_time_discretization ;
+                    tout = tspan(1):dt:tspan(end) ;
+                    if tout(end) ~= tspan(end)
+                        tout = [tout, tspan(end)] ;
+                    end
+                    zout = ode4(@(t,z) fun(t,z),tout,z0(:)) ;
+                otherwise
+                    error('Please set A.integrator_type to either ode45 or ode4')
+            end
+            zout = zout' ;
         end
     end
 end
