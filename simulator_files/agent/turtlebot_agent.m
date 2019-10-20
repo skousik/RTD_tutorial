@@ -33,7 +33,7 @@ classdef turtlebot_agent < RTD_agent_2D
         max_accel = 2.0 ; % m/s^2   
         
         % integrator type, to allow for fixed time step integration
-        integrator_type = 'ode45' ; % choose 'ode45' or 'ode4'
+        integrator_type = 'ode45' ; % choose 'ode45' or 'ode4' or 'ode113'
         integrator_time_discretization = 0.01 ; % for ode4
     end
     
@@ -130,7 +130,8 @@ classdef turtlebot_agent < RTD_agent_2D
             switch A.integrator_type
                 case 'ode45'
                     [tout,zout] = ode45(@(t,z) fun(t,z),tspan,z0(:)) ;
-                    tout = tout' ;
+                case 'ode113'
+                    [tout,zout] = ode113(@(t,z) fun(t,z),tspan,z0(:)) ;
                 case {'ode4','RK4'}
                     dt = A.integrator_time_discretization ;
                     tout = tspan(1):dt:tspan(end) ;
@@ -141,6 +142,7 @@ classdef turtlebot_agent < RTD_agent_2D
                 otherwise
                     error('Please set A.integrator_type to either ode45 or ode4')
             end
+            tout = tout(:)' ;
             zout = zout' ;
         end
     end
