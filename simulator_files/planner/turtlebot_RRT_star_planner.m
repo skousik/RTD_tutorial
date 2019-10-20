@@ -117,6 +117,9 @@ classdef turtlebot_RRT_star_planner < planner
                     P.plot_data.obstacles = data ;
                 end
             end
+            
+            % FOR DEBUGGING: plot RRT nodes
+            % plot(P.HLP)
         end
         
         function plot_at_time(P,t)
