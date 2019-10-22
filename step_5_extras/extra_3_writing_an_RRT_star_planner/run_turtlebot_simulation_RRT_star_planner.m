@@ -16,7 +16,7 @@ bounds = [-4,4,-2,2] ;
 goal_radius = 0.5 ;
 
 % planner
-buffer = 0.1 ; % m
+buffer = 0.3 ; % m
 t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
 t_move = 0.5 ;
 
@@ -28,9 +28,9 @@ A = turtlebot_agent ;
 
 % this is needed to the agent to track the RRT* output
 A.LLC.yaw_gain = 10 ;
-A.LLC.lookahead_time = 0.05 ;
+A.LLC.lookahead_time = 0.1 ;
 
-P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',0.1,...
+P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',buffer,...
     't_plan',t_plan,'t_move',t_move,'desired_speed',desired_speed) ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...

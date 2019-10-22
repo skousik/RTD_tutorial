@@ -47,7 +47,12 @@ classdef turtlebot_RRT_star_planner < planner
         function [T,U,Z] = replan(P,agent_info,world_info)
             % process obstacles
             O = world_info.obstacles ;
-            O_buf = buffer_polygon_obstacles(O,P.buffer,2) ;
+            
+            if ~isempty(O)
+                O_buf = buffer_polygon_obstacles(O,P.buffer,2) ;
+            else
+                O_buf = O ;
+            end
             
             % run RRT star
             P.HLP.plan_path(agent_info,O_buf,P.lookahead_distance) ;
