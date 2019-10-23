@@ -1,5 +1,6 @@
-function P = get_2D_contour_points(p,x,l,varargin)
+function [P,patch_data] = get_2D_contour_points(p,x,l,varargin)
 % P = get_2D_contour_points(p,x,l,'keyword1',value1,'keyword2',value2,...)
+% [P,patch_data] = get_2D_contour_points(...)
 %
 % Given an msspoly p in the 2D variable x, return a 2-by-N polyline of the
 % set where p(x) = l, i.e. the l-level set of p.
@@ -26,7 +27,8 @@ function P = get_2D_contour_points(p,x,l,varargin)
 %
 %
 % Authors: Shreyas Kousik and Sean Vaskov
-% Date: 29 May 2019
+% Created: 29 May 2019
+% Updated: 23 Oct 2019
 %
     %% parse input arguments
     if nargin < 3
@@ -65,37 +67,57 @@ function P = get_2D_contour_points(p,x,l,varargin)
 
     % create contour matrix
     P_raw = contourc(x_vec,y_vec,F,[l l]);
-
-    % find the columns in the contour matrix that separate the individual
-    % contours - the first entry in these columns will be the input l, and
-    % the second entry will be an integer
-    idxs = find((P_raw(1,:) == l) & (mod(P_raw(2,:),1) == 0));
-
-    % for each contour, extract the vertices
-    P = [] ;
-    for idx = idxs
-        P = [P, nan(2,1),...
-            P_raw(:, (idx+1):(idx + P_raw(2,idx)))] ;
-    end
     
-    % remove column of nans at end of P
-    if isnan(P(1,end))
-        P = P(:,1:end-1) ;
+    if ~isempty(P_raw)
+
+        % find the columns in the contour matrix that separate the individual
+        % contours - the first entry in these columns will be the input l, and
+        % the second entry will be an integer
+        idxs = find((P_raw(1,:) == l) & (mod(P_raw(2,:),1) == 0));
+        
+        % set up for patch data output
+        if nargout > 1
+            N = length(idxs) ;
+            patch_data = struct() ;
+            patch_data(N).Faces = [] ;
+            patch_data(N).Vertices = [] ;
+        end
+        
+        % for each contour, extract the vertices
+        P = [] ;
+        patch_idx = 1 ;
+        for idx = idxs
+            N_idx = P_raw(2,idx) ;
+            V_idx = P_raw(:, (idx+1):(idx + N_idx)) ;
+            P = [P, nan(2,1), V_idx] ;
+            if nargout > 1
+                patch_data(patch_idx).Faces = [1:N_idx,1] ;
+                patch_data(patch_idx).Vertices = V_idx' ;
+            end
+            patch_idx = patch_idx + 1 ;
+        end
+        
+        % remove column of nans at end of P
+        if isnan(P(1,end))
+            P = P(:,1:end-1) ;
+        end
+        
+        % scale, shift, and rotate the contour points
+        Position = Pose(1:2) ;
+        Rotation = Pose(3) ;
+        
+        Px = P(1,:) ;
+        Py = P(2,:) ;
+        
+        x0 = Offset(1) ;
+        y0 = Offset(2) ;
+        
+        x_shift = (Scale*Px - x0)*cos(Rotation) - sin(Rotation)*(Scale*Py - y0) ;
+        y_shift = (Scale*Py - y0)*cos(Rotation) + sin(Rotation)*(Scale*Px - x0) ;
+        
+        % create the final output
+        P = Position + [x_shift ; y_shift];
+    else
+        P = [] ;
     end
-
-    % scale, shift, and rotate the contour points
-    Position = Pose(1:2) ;
-    Rotation = Pose(3) ;
-
-    Px = P(1,:) ;
-    Py = P(2,:) ;
-
-    x0 = Offset(1) ;
-    y0 = Offset(2) ;
-
-    x_shift = (Scale*Px - x0)*cos(Rotation) - sin(Rotation)*(Scale*Py - y0) ;
-    y_shift = (Scale*Py - y0)*cos(Rotation) + sin(Rotation)*(Scale*Px - x0) ;
-
-    % create the final output
-    P = Position + [x_shift ; y_shift];
 end

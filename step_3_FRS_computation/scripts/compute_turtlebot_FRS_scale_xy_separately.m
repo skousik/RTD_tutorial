@@ -1,26 +1,26 @@
 %% description
 % This script computes a Forward-Reachable Set (FRS) for the TurtleBot. The
 % user specifies the range of initial speeds; all other info is loaded from
-% the relevant .mat files.
+% the relevant .mat files. The distance is scaled separately in x and y for
+% this version.
 %
 % Author: Shreyas Kousik
-% Created: 20 May 2019
-% Updated: 5 June 2019
+% Created: 22 Oct 2019
 %
 %% user parameters
 % degree of SOS polynomial solution
 degree = 6 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
 
 % include tracking error or not (this slows down the computation)
-include_tracking_error = true ;
+include_tracking_error = false ;
 
 % speed range (uncomment out one of the following)
-v0_range = [0.0, 0.5] ;
+% v0_range = [0.0, 0.5] ;
 % v0_range = [0.5, 1.0] ;
-% v0_range = [1.0, 1.5] ;
+v0_range = [1.0, 1.5] ;
 
 % whether or not to save output
-save_result = true ;
+save_result = false ;
 
 %% automated from here
 % load timing
@@ -41,13 +41,16 @@ switch v0_range(1)
         error('Hey! You picked an invalid speed range for the tutorial!')
 end
 
-% if degree == 4, make the distance scale larger, otherwise the
-% conservatism will drive the FRS out of [-1,1]^2
-if degree == 4
-    disp(['Increasing distance scale for degree 4 solution to keep FRS ',...
-        'in the [-1,1] box!'])
-    distance_scale = 1.5*distance_scale ;
-end
+% Make the distance scales larger, otherwise the conservatism will drive
+% the FRS out of [-1,1]^2
+disp(['Increasing distance scale to keep FRS ',...
+    'in the [-1,1] box!'])
+distance_scale_x = distance_scale_x ;
+distance_scale_y = distance_scale_y ;
+
+% make shorter variable names
+Dx = distance_scale_x ;
+Dy = distance_scale_y ;
 
 % create agent to use for footprint
 A = turtlebot_agent ;
@@ -65,14 +68,12 @@ x = z(1) ; y = z(2) ;
 % defining them as semi-algebraic sets; h_T is automatically generated
 Z_range = [-1, 1 ; -1, 1] ; % z \in [-1,1]^2
 
-Z0_radius = footprint/distance_scale ; % z(0) \in Z_0
-
 K_range = [-1, 1 ; -1, 1] ; % k \in [-1,1]^2
 
 h_Z = (z - Z_range(:,1)).*(Z_range(:,2) - z) ;
 
-h_Z0 = 1 - ((x - initial_x)/(footprint/distance_scale)).^2 + ...
-         - ((y - initial_y)/(footprint/distance_scale)).^2 ;
+h_Z0 = 1 - ((x - initial_x)/(footprint/Dx)).^2 + ...
+         - ((y - initial_y)/(footprint/Dy)).^2 ;
 
 h_K = (k - K_range(:,1)).*(K_range(:,2) - k) ;
 
@@ -86,16 +87,16 @@ v_range = bound_values(v_range,[0, max_speed]) ;
 v_des = (diff(v_range)/2)*k(2) + mean(v_range) ;
 
 % create dynamics
-scale = (time_scale/distance_scale) ;
-f = scale*[v_des - w_des*(y - initial_y) ;
-                 + w_des*(x - initial_x)] ;
+T = time_scale ;
+f = T*[(1/Dx)*(v_des - w_des*(Dy*y - initial_y)) ;
+       (1/Dy)*(w_des*(Dx*x - initial_x))] ;
 
 % create tracking error dynamics; first, make the monomials of time in
 % decreasing power order
 g_x_t_vec = t.^(length(g_x_coeffs)-1:-1:0) ;
 g_y_t_vec = t.^(length(g_y_coeffs)-1:-1:0) ;
-g = scale*[g_x_t_vec*g_x_coeffs', 0 ;
-           0, g_y_t_vec*g_y_coeffs'] ;
+g = T*[(1/Dx)*g_x_t_vec*g_x_coeffs', 0 ;
+       0, (1/Dy)*g_y_t_vec*g_y_coeffs'] ;
 
 %% create cost function
 % this time around, we care about the indicator function being on Z x K
@@ -130,23 +131,22 @@ if save_result
     % create the filename for saving
     filename = ['turtlebot_FRS_deg_',num2str(degree),'_v0_',...
                 num2str(v0_min,'%0.1f'),'_to_',...
-                num2str(v0_max,'%0.1f'),'.mat'] ;
+                num2str(v0_max,'%0.1f'),'_scale_xy_separately.mat'] ;
 
     % save!
     save(filename,'FRS_polynomial','FRS_lyapunov_function','t','z','k',...
-        'time_scale','distance_scale',...
+        'time_scale','distance_scale','distance_scale_x','distance_scale_y',...
         'v0_min','v0_max','v_des','w_des',...
         'max_speed','footprint','f','g','initial_x','initial_y','t_f',...
         't_plan','t_stop','v_range','delta_v','degree','h_Z','h_Z0','h_K',...
         'w_max','w_min')
 end
 
-%% visualize the output
-% prep
+%% prep for plotting
 I = FRS_polynomial ;
-I_z = msubs(I,k,[0;1]) ;
+I_z = msubs(I,k,[-1;1]) ;
 
-% plot
+%% plotting
 figure(1) ; clf ; hold on ;
 
 plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')

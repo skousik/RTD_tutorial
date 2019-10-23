@@ -41,6 +41,7 @@ classdef turtlebot_agent < RTD_agent_2D
         %% constructor
         function A = turtlebot_agent(varargin)
             % set up default superclass values
+            name = 'turtlebot' ;
             default_footprint = 0.35/2 ;
             n_states = 4 ;
             n_inputs = 2 ;
@@ -49,7 +50,8 @@ classdef turtlebot_agent < RTD_agent_2D
             LLC = turtlebot_PD_LLC ;
             
             % create agent
-            A@RTD_agent_2D('footprint',default_footprint,...
+            A@RTD_agent_2D('name',name,...
+                'footprint',default_footprint,...
                 'n_states',n_states,'n_inputs',n_inputs,...
                 'stopping_time',stopping_time,'sensor_radius',sensor_radius,...
                 'LLC',LLC,varargin{:}) ;

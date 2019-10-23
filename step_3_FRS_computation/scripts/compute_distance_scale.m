@@ -9,9 +9,9 @@
 % uncomment one of the following lines to load the relevant error function
 % data; we'll compute the FRS for that error function
 
-filename = 'turtlebot_error_functions_v0_0.0_to_0.5.mat' ;
+% filename = 'turtlebot_error_functions_v0_0.0_to_0.5.mat' ;
 % filename = 'turtlebot_error_functions_v0_0.5_to_1.0.mat' ;
-% filename = 'turtlebot_error_functions_v0_1.0_to_1.5.mat' ;
+filename = 'turtlebot_error_functions_v0_1.0_to_1.5.mat' ;
 
 %% automated from here
 % load timing info
@@ -51,8 +51,7 @@ for v0 = v0_range
             A.reset(z0) ;
             
             % create the trajectory to execute
-            [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
-            [T_brk,U_brk,Z_brk] = make_turtlebot_RTD_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+            [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_f,t_stop,w_des,v_des) ;
             
             % run the agent
             A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
@@ -77,5 +76,7 @@ initial_y = 0 ;
 filename = ['turtlebot_FRS_scaling_v0_',...
             num2str(v0_min,'%0.1f'),'_to_',...
             num2str(v0_max,'%0.1f'),'.mat'] ;
-save(filename,'time_scale','distance_scale','max_speed',...
-              'initial_x','initial_y') ;
+save(filename,'time_scale','distance_scale',...
+    'distance_scale_x','distance_scale_y',...
+    'max_speed',...
+    'initial_x','initial_y') ;
