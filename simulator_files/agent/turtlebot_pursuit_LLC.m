@@ -1,44 +1,51 @@
-classdef turtlebot_pursuit_LLC < low_level_controller
-% turtlebot_pursuit_LLC < low_level_controller
+classdef turtlebot_pursuit_LLC < turtlebot_LLC
+% turtlebot_pursuit_LLC < turtlebot_LLC
 %
 % This controller performs pursuit of a given desired trajectory. It is
-% mildly inspired by the following paper:
+% roughly based off the controller in the following paper:
 %
-% https://apps.dtic.mil/dtic/tr/fulltext/u2/a255524.pdf
+% "Evaluating a PID, pure pursuit, and weighted steering controller for an
+% autonomous land vehicle" by A.L. Rankin, C.D. Crane III, and D.G.
+% Armstrong II
 %
 % Author: Shreyas Kousik
 % Created: 23 Oct 2019
 % Updated: -
 %
-    %% properties
-    properties
-        % "carrot" distance
-        lookahead_distance = 0.01 ; % m
-        
-        % feedback gains
-        position_gain = 1 ;
-        speed_gain = 3 ;
-        yaw_gain = 10 ;
-        yaw_pursuit_gain = 1 ;
-        
-        % feedforward gains
-        accel_gain = 1 ;
-        yaw_rate_gain = 1 ;
-    end
-
-    %% methods
     methods
         %% constructor
         function LLC = turtlebot_pursuit_LLC(varargin)
-            n_agent_states = 4 ;
-            n_agent_inputs = 2 ;
+            % set default lookahead properties
+            lookahead_distance = 0.01 ; % m
+            lookahead_time = 0.01 ; % s
+            lookahead_type = 'time' ;
             
-            LLC = parse_args(LLC,'n_agent_states',n_agent_states,...
-                'n_agent_inputs',n_agent_inputs,varargin{:}) ;
+            % set default gains
+            DG.position = 9 ;
+            DG.speed = 13 ;
+            DG.yaw = 0 ;
+            DG.yaw_pursuit = 1 ;
+            DG.yaw_rate = 1 ;
+            DG.acceleration = 1 ;
+            
+            % set gains for A.stop() method
+            SG.position = 0 ;
+            SG.speed = 0 ;
+            SG.yaw = 0 ;
+            SG.yaw_pursuit = 0 ;
+            SG.yaw_rate = 1 ;
+            SG.acceleration = 1 ;
+            
+            % create low-level controller
+            LLC@turtlebot_LLC('lookahead_distance',lookahead_distance,...
+                'lookahead_time',lookahead_time,...
+                'lookahead_type',lookahead_type,...
+                'gains',DG,'default_gains',DG,'stop_gains',SG,...
+                varargin{:}) ;            
         end
         
         %% get control inputs
-        function U = get_control_inputs(LLC,A,t_cur,z_cur,T_des,U_des,Z_des)
+        function u = get_control_inputs(LLC,A,t_cur,z_cur,T_des,U_des,Z_des)
             % get current state
             p_cur = z_cur(A.position_indices) ;
             h_cur = z_cur(A.heading_index) ;
@@ -57,25 +64,33 @@ classdef turtlebot_pursuit_LLC < low_level_controller
             else
                 % otherwise, we are doing feedback about a desired
                 % trajectory
-                
                 [d_cur,~,d_along] = dist_point_on_polyline(p_cur,Z_des(1:2,:)) ;
-                d_fdbk = min(d_cur + LLC.lookahead_distance, d_along(end)) ;
                 
-                [u_des,z_des] = match_trajectories(d_fdbk,d_along,U_des,d_along,Z_des,'previous') ;
+                switch LLC.lookahead_type
+                    case 'distance'
+                        d_fdbk = min(d_cur + LLC.lookahead_distance, d_along(end)) ;
+
+                        [u_des,z_des] = match_trajectories(d_fdbk,d_along,U_des,d_along,Z_des) ;
+                        d_des = d_fdbk ;
+                    case 'time'
+                        t_fdbk = min(t_cur + LLC.lookahead_time, T_des(end)) ;
+                        [u_des,z_des] = match_trajectories(t_fdbk,T_des,U_des,T_des,Z_des) ;
+                        d_des = match_trajectories(t_fdbk,T_des,d_along) ;
+                    otherwise
+                        error('Please pick ''time'' or ''distance'' for LLC.lookahead_type.')
+                end
                 p_des = z_des(A.position_indices) ;
-                v_des = z_des(A.speed_index) ;
                 h_des = z_des(A.heading_index) ;
-                d_des = match_trajectories(t_cur,T_des,d_along) ;
+                v_des = z_des(A.speed_index) ;
             end
             
             % get gains
-            k_p = LLC.position_gain ;
-            k_v = LLC.speed_gain ;
-            k_h = LLC.yaw_gain ;
-            k_hp = LLC.yaw_pursuit_gain ;
-            
-            k_w = LLC.yaw_rate_gain ;
-            k_a = LLC.accel_gain ;
+            k_p = LLC.gains.position ;
+            k_v = LLC.gains.speed ;
+            k_a = LLC.gains.acceleration ;
+            k_h = LLC.gains.yaw ;
+            k_w = LLC.gains.yaw_rate ;
+            k_hp = LLC.gains.yaw_pursuit ;
             
             % get desired feedforward inputs
             w_des = u_des(1) ;
@@ -83,14 +98,14 @@ classdef turtlebot_pursuit_LLC < low_level_controller
             
             % compute heading relative to desired position
             p_err = p_des - p_cur ;
-            hp_err = atan2(p_err(2),p_err(1)) ;
+            hp_err = atan(p_err(2)) ;
             
             % compute unsaturated inputs (they get saturated by the agent)
             w_out = k_h*(h_des - h_cur) + k_w*w_des + k_hp*hp_err ;
-            a_out = k_p*(d_des - d_cur) + k_v*(v_des - v_cur) + k_a*a_des;
+            a_out = k_p*(d_des - d_cur) + k_v*(v_des - v_cur) + k_a*a_des ;
             
             % create output
-            U = [w_out ; a_out] ;
+            u = [w_out ; a_out] ;
         end
     end
 end

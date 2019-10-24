@@ -1,37 +1,34 @@
-classdef turtlebot_PD_LLC < low_level_controller
-    properties
-        %% default values
-        % lookahead time
-        lookahead_time = 0 ;
-        
-        % feedback gains
-        position_gain = 0 ;
-        speed_gain = 3 ;
-        yaw_gain = 0 ;
-        yaw_from_position_gain = 0 ;
-        
-        % feedforward gains
-        yaw_rate_gain = 1 ;
-        accel_gain = 0 ;
-        
-        %% useful alternative values
-        % lookahead_time = 0.5 ;
-        % position_gain = 10 ;
-        % speed_gain = 100 ;
-        % yaw_gain = 3 ;
-        % yaw_from_position_gain = 0.05 ;
-        % yaw_rate_gain = 0 ;
-        % accel_gain = 0 ;
-    end
-    
+classdef turtlebot_PD_LLC < turtlebot_LLC
     methods
         %% constructor
         function LLC = turtlebot_PD_LLC(varargin)
-            n_agent_states = 4 ;
-            n_agent_inputs = 2 ;
+            % set default lookahead properties
+            lookahead_distance = 0.01 ; % m
+            lookahead_time = 0.01 ; % s
+            lookahead_type = 'time' ;
             
-            LLC = parse_args(LLC,'n_agent_states',n_agent_states,...
-                'n_agent_inputs',n_agent_inputs,varargin{:}) ;
+            % set default gains
+            DG.position = 9 ;
+            DG.speed = 12 ;
+            DG.yaw = 1 ;
+            DG.yaw_from_position = 0 ;
+            DG.yaw_rate = 1 ;
+            DG.acceleration = 1 ;
+            
+            % set gains for A.stop() method
+            SG.position = 0 ;
+            SG.speed = 0 ;
+            SG.yaw = 0 ;
+            SG.yaw_from_position = 0 ;
+            SG.yaw_rate = 1 ;
+            SG.acceleration = 1 ;
+            
+            % create low-level controller
+            LLC@turtlebot_LLC('lookahead_distance',lookahead_distance,...
+                'lookahead_time',lookahead_time,...
+                'lookahead_type',lookahead_type,...
+                'gains',DG,'default_gains',DG,'stop_gains',SG,...
+                varargin{:}) ;            
         end
         
         %% get control inputs
@@ -67,20 +64,20 @@ classdef turtlebot_PD_LLC < low_level_controller
             a_des = u_des(2) ;
             
             % get gains
-            k_p = LLC.position_gain ;
-            k_v = LLC.speed_gain ;
-            k_a = LLC.accel_gain ;
-            k_h = LLC.yaw_gain ;
-            k_w = LLC.yaw_rate_gain ;
-            k_hp = LLC.yaw_from_position_gain ;
+            k_p = LLC.gains.position ;
+            k_v = LLC.gains.speed ;
+            k_a = LLC.gains.acceleration ;
+            k_h = LLC.gains.yaw ;
+            k_w = LLC.gains.yaw_rate ;
+            k_hp = LLC.gains.yaw_from_position ;
             
-            % compute arclength error
+            % compute position error in heading direction
             R = rotation_matrix_2D(h_cur) ;
             p_err = R*(p_des - p_cur) ;
             px_err = p_err(1) ;
             
             % compute heading relative to desired position
-            hp_err = atan2(p_err(2),p_err(1)) ;
+            hp_err = -atan2(p_err(2),p_err(1)) ;
             
             % compute unsaturated inputs (they get saturated by the agent)
             w_out = k_h*(h_des - h_cur) + k_w*w_des + k_hp*hp_err ;

@@ -8,17 +8,23 @@ For the purposes of RTD, we refer a robot's state space model as a **high-fideli
 
 
 
-## 1.1 Summary
+## Summary
 
-In this step, we pick the trajectory-producing model. The goal is to reduce the number of dimensions as much as possible while still producing trajectories that the robot can track closely. In addition, remember that our definition of correct for the TurtleBot means that we care about avoiding obstacles (which exist in $x$ and $y$, but not in the robot's other states). So, our ideal trajectory-producing model should only have position as its states. To get to such a model, we'll do two things:
-1. Get rid of the speed state, and pretend that it's a control input, to reduce the dimension by one
-2. Replace control inputs with **trajectory parameters**
+In this step, we pick the trajectory-producing model. The goal is to reduce the number of dimensions as much as possible while still producing trajectories that the robot can track closely. In addition, remember that our definition of correct for the TurtleBot means that we care about avoiding obstacles (which exist in $x$ and $y$, but not in the robot's other states). So, our ideal trajectory-producing model should only have position as its states.
 
-The last thing we'll do is make sure that the desired trajectories are of long enough duration for the robot to execute a **fail-safe maneuver** to bring it to a known-correct state (which means coming to a stop for the TurtleBot).
+In this part, we'll discuss the following:
+
+1. The **Dubins' car** kinematic model, which has 3 states and 2 inputs
+2. **Parameterized trajectories**, which allow us simplify how we think about control inputs
+3. Trajectory **tracking**, where we notice that the Turtlebot can't track parameterized trajectories perfectly
+4. The **fail-safe maneuver**, where we specify that every planned trajectory ends with braking
+5. The **planning time horizon**, where we make sure our planned trajectories are long enough to include braking to a stop
+
+With these 5 things in place, we will have a dynamic model that produces smooth trajectories that include braking. In the following sections, we'll take a deeper dive into the tracking error, then use the tracking error and desired trajectories for reachability analysis, and finally perform online planning.
 
 
 
-## 1.2 Dubins' Car
+## 1.1 Dubins' Car
 
 Recall that we use a unicycle model for the TurtleBot. If we get rid of the speed dimension, and replace acceleration with speed as our second control input, we end up with a model called a **Dubins' car**:
 $$
@@ -33,7 +39,7 @@ Note that $\theta$ is written as `h` in the code (for "heading"). We pick this a
 
 
 
-## 1.3 Trajectory Parameters
+## 1.2 Trajectory Parameters
 
 Note that the control inputs can vary with time and the robot's states. In the case of the high-fidelity mode, this lets the robot track a desired trajectory using closed-loop feedback. But, if the trajectory-producing model can have any combination of speed and yaw rate at any time, the set of all possible desired trajectories is really big - and this can make computing the FRS tricky.
 
@@ -45,7 +51,7 @@ $$
 $$
 
 
-Notice that the parameters are fixed (since their time derivative is 0). Of course, it doesn't make sense for them to be fixed for _all time_, since the robot probably won't do anything useful if its speed and yaw rate are fixed forever. Instead, we fix the control parameters over the finite planning time horizon of duration $t_f$.
+Notice that the parameters are fixed (since their time derivative is 0). Of course, it doesn't make sense for them to be fixed for _all time_, since the robot probably won't do anything useful if its speed and yaw rate are fixed forever. Instead, we fix the control parameters over the finite planning time horizon of duration $t_{\mathrm{f}}$.
 
 ### Example 1
 
@@ -75,13 +81,13 @@ You should see something like this:
 
 <img src="images/image_for_example_1.png" width="500px"/>
 
-This code is in `example_1_desired_trajectory.m` as well.
+This code is in `step_1_ex_1_desired_trajectory.m` as well.
 
 
 
-## 1.4 Tracking Desired Trajectories
+## 1.3 Tracking Desired Trajectories
 
-Now, we can try tracking this desired trajectory! The following code is in `example_2_trajectory_tracking.m`.
+Now, we can try tracking this desired trajectory! The following code is in `step_1_ex_2_trajectory_tracking.m`.
 
 ### Example 2
 
@@ -141,82 +147,97 @@ Notice that the robot did not perfectly track the desired trajectory. This is be
 
 
 
-## 1.5 Fail-Safe Maneuver
+## 1.4 Fail-Safe Maneuver
 
-There is one key thing still missing. In every desired trajectory, we also need to include a **fail-safe maneuver**, which brings the robot to a known correct state. For the Turtlebot, staying stationary is always correct, since we only care about static obstacles. So, our fail-safe maneuver is braking to a stop. This means we need to include the distance required to stop in every desired trajectory.
+There is one key thing still missing. In every desired trajectory, we also need to include a **fail-safe maneuver**, which brings the robot to a known correct state. For the Turtlebot, staying stationary is always correct, since we only care about static obstacles. So, our fail-safe maneuver is braking to a stop. In particular, we must encode braking to a stop in our desired trajectory for the time interval $[t_{\mathrm{plan}}, t_{\mathrm{f}}]$, as noted in the tutorial intro.
 
-Code for this part is in `step_1_desired_trajectories/scripts/compute_planning_time.m`. Since that script is pretty involved, we just point out the highlights here.
-
-To create the fail-safe maneuver, we first need to understand how long it takes the robot to brake to a stop from its max speed, which we have picked as 1.5 m/s. We can command the robot to stop as follows:
-
-```matlab
-max_speed = 1.5 ;
-t_brake = 5 ;
-A = turtlebot_agent ; % get a fresh copy
-A.reset([0;0;0;max_speed])
-A.stop(t_brake)
-```
-
-Here, `t_brake` is the amount of time to apply the `stop` method, which commands 0 desired speed and yaw rate. It turns out that it takes about 2.61 s for the robot to come to a stop (which we count as a speed of < 0.001 m/s).
-
-Now, we can transform a regular desired trajectory into a desired trajectory with braking:
-
-```matlab
-% create the regular desired trajectory
-t_f = 0.95 ; % s (see compute_planning_time.m for where this choice of t_f comes from)
-w_des = 0.5 ;
-v_des = 1.0 ;
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
-
-% add braking
-t_plan = 0.5 ; % s
-t_stop = 2.61 ; % s
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
-```
-
-Let's see what happens when we apply this to the TurtleBot:
-
-```matlab
-% run the braking maneuver from an initial speed of 0.75 m/s
-z0 = [0;0;0;0.75] ; % initial (x,y,h,v)
-A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk)
-
-% plot
-figure(1) ; clf ; hold on ; axis equal ;
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
-plot(A)
-
-% animate
-A.animate()
-```
-
-
-
-You should see the TurtleBot start to track the desired trajectory, then brake to a stop starting at $t_\text{plan}$ = 0.5 s.
+To create the braking maneuver, we first need to understand the braking performance of the Turtlebot.Recall that the Turtlebot, according to our high-fidelity model, has a maximum longitudinal acceleration of -2 m/s$^2$. Since acceleration is a control input, we assume that we can apply any acceleration at any time, which is fine since we are just dealing with a math model and not a real robot for now. Therefore, we can generate a braking trajectory by specifying a linear decrease (at the rate of -2 m/s$^2$) in our speed state from $t_{\mathrm{plan}}$ until the speed is 0.
 
 ### Example 3
 
-See `example_3_braking_trajectory.m`, which basically does everything that is written above. You can use that example code like this:
-
-```
-initial_speed = 1.2 ;
-w_des = 0.5 ;
-v_des = 0.7 ;
-example_3_braking_trajectory(w_des,v_des,initial_speed)
-```
-
-
-
-Note that you can bypass the creation of a desired trajectory and then conversion into a braking trajectory with the following code:
+To see what braking looks like, let's create a braking trajectory. This code is all in `step_1_ex_3_braking_trajectory.m`. First, set up some variables:
 
 ```matlab
-[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_f,t_stop,w_des,v_des)
+% desired trajectory
+v_des = 1 ; % m/s
+w_des = 1 ; % rad/s
+
+% timing
+t_plan = 0.5 ; % m/s
+
 ```
 
+Now, let's compute how long it will take to stop from our desired speed:
+
+```matlab
+A = turtlebot_agent() ;
+t_stop = v_des / A.max_accel ;
+```
+
+We can use `t_stop` to compute a desired trajectory with braking:
+
+```matlab
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+```
+
+If we plot this trajectory in each of the states, we can see how the speed linearly decreases to zero:
+
+<img src="images/image_for_example_3.png" width="500px"/>
 
 
-This creates a trajectory of duration $t_{\text{stop}}$ that begins braking at $t_\text{plan}$.
+
+## 1.5 Time Horizon
+
+With our braking maneuver in hand, we can now decide on the time horizon $t_{\mathrm{f}}$ needed for our reachability analysis (Step 3 of the RTD tutorial).
+
+Recall that we are only considering static obstacles for now, so our reachable set does not need to include time (see [this paper](http://www.roboticsproceedings.org/rss15/p51.pdf) for how to deal with dynamic obstacles). Furthermore, we'll do a simple version of the reachability analysis, where we do not include the braking **explicitly** in the desired trajectory. Instead, we will compute our reachable set as though the yaw rate and speed are fixed for the time horizon $T = [0, t_{\mathrm{f}}]$.
+
+This means we need to include the braking **implicitly** -- so, the time horizon needs to be long enough that the desired trajectory model travels _farther_ without braking than it would _with_ braking.
+
+To understand how long to make the time horizon, let's first look at how the braking distance increases as a function of the initial speed. Run the script `step_1_inspect_braking_distance_vs_initial_speed.m` in `step_1_desired_trajectories/scripts/`, and you'll see the following plot:
+
+<img src="images/image_1_for_step_1.5.png" width="500px"/>
+
+The braking distance increases roughly quadratically with the initial speed. This means that we can pick $t_{\mathrm{f}}$ as $t_{\mathrm{plan}}$ plus the largest value of $d_{\mathrm{brk}} / v_0$, i.e., the braking distance divided by the initial speed (see Equation (91) in Appendix 12 of [this paper](https://arxiv.org/pdf/1809.06746.pdf)).
+
+In the code, we can do this (after running the script mentioned above) as follows:
+
+```matlab
+t_f_candidates = d_brk ./ v_0_vec ;
+t_f = t_plan + max(t_f_candidates) ;
+```
+
+It turns out that $t_{\mathrm{f}} = 0.5 + 0.4 = 0.9$ s, for the particular Turtlebot dynamics that we have, given the max speed of 1.5 m/s. Note that we've rounded up to the nearest 0.1 s to preempt numerical errors.
+
+This is kind of confusing to think about, so we summarize it again here. Suppose that we forward-integrate the trajectory producing model _without braking_ for the duration $t_{\mathrm{f}} = 0.9$ s, with $v = 1.5$ m/s. Then, the total distance traveled is _greater_ than the distance traveled by the same dynamics if they braked to a stop, beginning at $t_{\mathrm{plan}} = 0.5$ s.
+
+We can check this claim numerically, with the script `step_1_validate_t_f.m`.
+
+```matlab
+% set up speed and yaw rate
+v_max = 1.5 ; % m/s
+w_des = 0.0 ; % rad/s
+
+% set up timing
+t_plan = 0.5; % s
+
+% create turtlebot
+A = turtlebot_agent() ;
+
+% create non-braking trajectory
+t_f = t_plan + 0.4 ;
+[T_go,~,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_max) ;
+
+% create braking trajectory
+t_stop = v_max / A.max_accel ;
+[T_brk,~,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_max) ;
+```
+
+Plotting the relevant values, we see that the non-braking trajectory travels farther than the braking trajectory:
+
+<img src="images/image_2_for_step_1.5.png" width="500px"/>
+
+
 
 Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
 

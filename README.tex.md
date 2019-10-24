@@ -42,9 +42,9 @@ where the **control inputs** are $\omega$ (yaw rate) and $a$ (acceleration). Not
 
 ## 2. Receding-Horizon Planning
 
-RTD performs **receding-horizon planning**, where the robot executes a short plan while computing a new plan. This strategy is used because robots have limited sensors. So, they have to move around to gain more information for planning. We denote the duration of each plan as an interval of time $[t_0,t_f]$. Without loss of generality, we can assume that $t_0 = 0$ at the beginning of each plan. So, we call $t_f$ the **planning time horizon**.
+RTD performs **receding-horizon planning**, where the robot executes a short plan while computing a new plan. This strategy is used because robots have limited sensors. So, they have to move around to gain more information for planning. We denote the duration of each plan as an interval of time $[t_0,t_{\mathrm{f}}]$. Without loss of generality, we can assume that $t_0 = 0$ at the beginning of each plan. So, we call $t_{\mathrm{f}}$ the **planning time horizon**.
 
-Now, suppose a plan is of duration $t_f$, and the robot waits until it executes the entire plan to begin executing its next plan. But, what if it can't find a new plan? It might end up crashing into stuff! To avoid this issue, we use a **planning timeout** $t_{\mathrm{plan}} < t_f$, which is the amount of time per planning iteration that the robot has to find a new plan. Then, to make sure the robot operates correctly, every plan has to include a **fail-safe maneuver** over the time interval $[t_{\mathrm{plan}}, t_f]$.
+Now, suppose a plan is of duration $t_{\mathrm{f}}$, and the robot waits until it executes the entire plan to begin executing its next plan. But, what if it can't find a new plan? It might end up crashing into stuff! To avoid this issue, we use a **planning timeout** $t_{\mathrm{plan}} < t_{\mathrm{f}}$, which is the amount of time per planning iteration that the robot has to find a new plan. Then, to make sure the robot operates correctly, every plan has to include a **fail-safe maneuver** over the time interval $[t_{\mathrm{plan}}, t_{\mathrm{f}}]$.
 
 ### Planning Hierarchy
 

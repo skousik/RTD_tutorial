@@ -45,7 +45,7 @@ classdef turtlebot_agent < RTD_agent_2D
             default_footprint = 0.35/2 ;
             n_states = 4 ;
             n_inputs = 2 ;
-            stopping_time = 3.75 ;
+            stopping_time = 3 ; % conservative estimate
             sensor_radius = 4 ;
             LLC = turtlebot_PD_LLC ;
             
@@ -69,31 +69,22 @@ classdef turtlebot_agent < RTD_agent_2D
             
             % get the current speed
             v = A.state(A.speed_index,end) ;
-            
-            % get braking input
-            u_stop = -A.max_accel ;
-            
-            if v == 0
-                % if we are already stopped, stay stopped
-                T_input = [0, t_stop] ;
-                U_input = zeros(2) ;
-            else
-                % check how long it will take to come to a stop
-                t_req_to_stop = v/A.max_accel ;
 
-                if t_req_to_stop < t_stop
-                    T_input = [0, t_req_to_stop, t_stop] ;
-                    U_input = [0 0 0 ;
-                               u_stop, 0, 0] ;
-                else
-                    T_input = [0, t_stop] ;
-                    U_input = [0 0 ;
-                               u_stop, 0] ;
-                end
-            end
+            % check how long it will take to come to a stop and make the
+            % stopping time vector
+            t_req_to_stop = v/A.max_accel ;            
+            T_input = [0, max(t_req_to_stop,t_stop)] ;
             
-            % call move method to perform braking
-            A.move(t_stop,T_input,U_input) ;
+            % generate the input and desired trajectory
+            U_input = zeros(2,2) ;
+            Z_input = [repmat(A.state(1:3,end),1,2); zeros(1,2)] ;
+            
+            % call move method to perform stop
+            % A.LLC.gains = A.LLC.stop_gains ;
+            A.move(t_stop,T_input,U_input,Z_input) ;
+            
+            % reset the default gains after stopping
+            % A.LLC.gains = A.LLC.default_gains ;
         end
         
         %% dynamics
