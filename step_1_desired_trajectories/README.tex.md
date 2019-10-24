@@ -255,7 +255,11 @@ $$
 \frac{d}{dt}\begin{bmatrix} x'(t) \\ y'(t) \end{bmatrix} = \begin{bmatrix} \dot{x}(t) - \dot{\theta}(t)\cdot(y(t) - y'(t)) \\ \dot{y}(t) + \dot{\theta}(t)\cdot(x(t) - x'(t)) \end{bmatrix}
 \end{align}.
 $$
-Ideally, we would want to write down the dynamics of *every* point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. In other words, we would need an infinite number of differential equations.
+
+
+Ideally, we would want to write down the dynamics of _every_ point on the robot's body this way, but, since you can think of a robot's body as a set in Euclidean space, its body typically contains an infinite number of points. This means we would need an infinite number of differential equations to describe the motion of its entire body.
+
+
 
 However, in our [reachability analysis (Step 3)](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation), we are able to compute the motion of every point on the robot's body by rewriting the Dubins' car in the following way. First, suppose that, at $t = 0$, the robot's center of mass is at $(x_0, y_0)$, and the robot's initial heading is $\theta_0 = 0$. Then, the following differential equation will produce the trajectory of any point $(x',y')$ on the body:
 $$
@@ -274,33 +278,25 @@ Since the position and heading of the robot can be treated as starting at 0 for 
 
 ## Appendix 1.B: Low-Level Controller
 
-In `simulator`, each `agent` has the option of using a low-level controller (LLC), specified by the `agent.LLC` property. The Turtlebot agent in particular uses the `turtlebot_PD_LLC.m` LLC, which you can find in the [`simulator_files/`](https://github.com/skousik/turtlebot_RTD/tree/master/simulator_files) directory of this tutorial repository. This controller does PD (proportional-derivative) control about a desired trajectory's speed and yaw rate. The closed-loop system can be written:
-$$
-\begin{align}
-\frac{d}{dt}\begin{bmatrix} x \\ y \\ \theta \\ v \end{bmatrix}
-=
-\begin{bmatrix} v\cos\theta \\
-v\sin\theta \\
-k_\theta\cdot(\theta_{\mathrm{des}} - \theta) + k_\omega\cdot\omega_{\mathrm{des}} \\
-k_v\cdot(v - v_{\mathrm{des}}) + k_a\cdot a_{\mathrm{des}}\end{bmatrix}
-\end{align}
-$$
-given the desired speed and yaw rate commands. You can find this low-level controller in the agent with the following code:
-
+In `simulator`, each `agent` has the option of using a low-level controller (LLC), specified by the `agent.LLC` property. The Turtlebot agent in particular uses the `turtlebot_PD_LLC.m` LLC, which you can find in the [`simulator_files/`](https://github.com/skousik/turtlebot_RTD/tree/master/simulator_files) directory of this tutorial repository. This controller does PD (proportional-derivative) control about a desired trajectory. You can find this low-level controller in the agent with the following code:
 ```
 A = turtlebot_agent ;
 A.LLC % displays the LLC's properties
 ```
 
-The default gains are: $k_\theta = 0,\ k_\omega = 1,\ k_v = 3,\ k_a = 0$. This is expressed in the code as:
+The default gains expressed in the code as:
 
-```
-A.LLC.yaw_gain = 0 ;
-A.LLC.yaw_rate_gain = 1 ;
-A.LLC.speed_gain = 3 ;
-A.LLC.accel_gain = 0 ;
+```matlab
+A.LLC.gains.position = 9 ;
+A.LLC.gains.speed = 12 ;
+A.LLC.gains.yaw = 1 ;
+A.LLC.gains.yaw_from_position = 0 ;
+A.LLC.gains.yaw_rate = 1 ;
+A.LLC.gains.acceleration = 1 ;
 ```
 
-Note that the acceleration gain $k_a$ and yaw rate gain $k_\omega$  determine the feedforward of the TurtleBot's acceleration and yaw rate inputs. You can play with the gains to make the TurtleBot track the desired trajectories really well, but we're leaving them as is to make sure the TurtleBot has some tracking error.
+Note that the acceleration gain and yaw rate gain determine how much to feed forward a desired trajectory's nominal inputs.
+
+You can play with the gains, but they are pretty good as is (< 3 cm of tracking error for any desired trajectory). This is because our desired trajectories are _parameterized_ with a compact set of parameters. This lets us to design a really good feedback controller without too much effort.
 
 #### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
