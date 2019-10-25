@@ -1,4 +1,4 @@
-**TL;DR**: Run `example_3_braking_trajectory.m`. The other examples are pretty straightforward too.
+**TL;DR**: Run `step_1_ex_3_braking_trajectory.m`.
 
 # Step 1: Picking a Trajectory-Producing Model
 
@@ -71,7 +71,7 @@ axis equal
 
 You should see something like this:
 
-<img src="images/image_for_example_1.png" width="500px"/>
+<img src="images/step_1_ex_1_img_1.png" width="500px"/>
 
 This code is in `step_1_ex_1_desired_trajectory.m` as well.
 
@@ -133,7 +133,7 @@ A.animate()
 
 You should see something like this once the animation completes:
 
-<img src="images/image_for_example_2.png" width="500px"/>
+<img src="images/step_1_ex_2_img_1.png" width="500px"/>
 
 Notice that the robot did not perfectly track the desired trajectory. This is because its initial speed is different from its desired speed. Note that the agent uses a low-level controller for trajectory tracking that is explained a bit more below, in [Appendix 1.B](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories#appendix-1b-low-level-controller).
 
@@ -174,7 +174,7 @@ We can use `t_stop` to compute a desired trajectory with braking:
 
 If we plot this trajectory in each of the states, we can see how the speed linearly decreases to zero:
 
-<img src="images/image_for_example_3.png" width="500px"/>
+<img src="images/step_1_ex_3_img_1.png" width="500px"/>
 
 
 
@@ -188,7 +188,7 @@ This means we need to include the braking **implicitly** -- so, the time horizon
 
 To understand how long to make the time horizon, let's first look at how the braking distance increases as a function of the initial speed. Run the script `step_1_inspect_braking_distance_vs_initial_speed.m` in `step_1_desired_trajectories/scripts/`, and you'll see the following plot:
 
-<img src="images/image_1_for_step_1.5.png" width="500px"/>
+<img src="images/step_1.5_img_1.png" width="500px"/>
 
 The braking distance increases roughly quadratically with the initial speed. This means that we can pick <img src="/step_1_desired_trajectories/tex/2db35060f2b6f146752157657cfb5d5a.svg?invert_in_darkmode&sanitize=true" align=middle width=10.930443149999991pt height=20.221802699999984pt/> as <img src="/step_1_desired_trajectories/tex/5ae1e561ec81f97d93ed9df0f76cab27.svg?invert_in_darkmode&sanitize=true" align=middle width=30.730753349999993pt height=20.221802699999984pt/> plus the largest value of <img src="/step_1_desired_trajectories/tex/402ff5fdff7e663170c8b257765739e7.svg?invert_in_darkmode&sanitize=true" align=middle width=51.42145964999999pt height=24.65753399999998pt/>, i.e., the braking distance divided by the initial speed (see Equation (91) in Appendix 12 of [this paper](https://arxiv.org/pdf/1809.06746.pdf)).
 
@@ -227,11 +227,19 @@ t_stop = v_max / A.max_accel ;
 
 Plotting the relevant values, we see that the non-braking trajectory travels farther than the braking trajectory:
 
-<img src="images/image_2_for_step_1.5.png" width="500px"/>
+<img src="images/step_1.5_img_2.png" width="500px"/>
 
 
 
-Now that we have the robot tracking desired trajectories and braking, we can move on to computing a **tracking error function**.
+Note that <img src="/step_1_desired_trajectories/tex/2db35060f2b6f146752157657cfb5d5a.svg?invert_in_darkmode&sanitize=true" align=middle width=10.930443149999991pt height=20.221802699999984pt/> is only used for FRS computations later on. At runtime, when we're making a braking trajectory, we compute `t_stop` as the duration needed to stop from the maximum possible desired speed, given the current speed `v_0`.
+
+```matlab
+t_stop = min(v_0 + delta_v, v_max) ./ A.max_accel
+```
+
+
+
+Next, since we have the robot able to track desired trajectories and brake to a stop, we can move on to computing a **tracking error function**.
 
 #### [Next: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
 
@@ -281,6 +289,6 @@ A.LLC.gains.acceleration = 1 ;
 
 Note that the acceleration gain and yaw rate gain determine how much to feed forward a desired trajectory's nominal inputs.
 
-You can play with the gains, but they are pretty good as is (< 3 cm of tracking error for any desired trajectory). This is because our desired trajectories are _parameterized_ with a compact set of parameters. This lets us to design a really good feedback controller without too much effort.
+You can play with the gains, but they are pretty good as is (< 3 cm of tracking error for any desired trajectory). This is because our desired trajectories are _parameterized_ with a compact set of parameters. This lets us design a really good feedback controller without too much effort.
 
 #### [Next step: computing tracking error](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function)
