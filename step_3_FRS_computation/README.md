@@ -6,7 +6,7 @@
 
 Now that we have a [dynamic model](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) and a [tracking error function](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function), we can compute a Forward-Reachable Set (FRS) for the TurtleBot. Note that there are also simple examples of the FRS computation in the [RTD repository](https://github.com/ramvasudevan/RTD/tree/master/examples/offline_FRS_computation).
 
-## 3.1 Summary
+## Summary
 
 In this step, we use sums-of-squares (SOS) programming to conservatively approximate an indicator function the FRS of the TurtleBot. We could also use other reachability methods, but this one lets us represent the FRS with polynomials, which end up being useful for online planning in the next step.
 
@@ -35,6 +35,9 @@ where <img src="/step_3_FRS_computation/tex/db85bd6dfbbcc6817fc7960910b43296.svg
 <p align="center"><img src="/step_3_FRS_computation/tex/1ae6831711d8e1f0131be221eb2de1aa.svg?invert_in_darkmode&sanitize=true" align=middle width=176.17549125pt height=39.452455349999994pt/></p>
 
 
+
+
+
 ### Goals for This Step
 
 The key takeaways from the math are the following. We use <img src="/step_3_FRS_computation/tex/190083ef7a1625fbc75f243cffb9c96d.svg?invert_in_darkmode&sanitize=true" align=middle width=9.81741584999999pt height=22.831056599999986pt/> to denote the trajectory-producing model, and <img src="/step_3_FRS_computation/tex/db85bd6dfbbcc6817fc7960910b43296.svg?invert_in_darkmode&sanitize=true" align=middle width=17.77402769999999pt height=22.465723500000017pt/> to denote the robot's body or "footprint" at the beginning of any planning iteration. We use <img src="/step_3_FRS_computation/tex/d6328eaebbcd5c358f426dbea4bdbf70.svg?invert_in_darkmode&sanitize=true" align=middle width=15.13700594999999pt height=22.465723500000017pt/> to denote the space of trajectory parameters, and <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> to denote the plane of <img src="/step_3_FRS_computation/tex/7392a8cd69b275fa1798ef94c839d2e0.svg?invert_in_darkmode&sanitize=true" align=middle width=38.135511149999985pt height=24.65753399999998pt/> points. We proceed as follows:
@@ -46,13 +49,13 @@ The first computation is to illustrate what the FRS looks like. The second compu
 
 
 
-## 3.2 FRS for a Single Trajectory
+## 3.1 FRS for a Single Trajectory
 
-Now we'll compute the FRS for a single desired trajectory, to illustrate how the FRS computation is written as a SOS program with spotless and MOSEK. The following code is all in `example_6_FRS_with_fixed_traj_params.m`. We'll walk through it in a slightly different order here.
+We'll begin by computing the FRS for a single desired trajectory, to illustrate how the FRS computation is written as a SOS program with spotless and MOSEK. The following code is all in `step_3_ex_1_FRS_with_fixed_traj_params`. We'll walk through it in a slightly different order here.
 
-### Example 6
+### Example 1
 
-First, let's figure out what SOS program we even want to solve. The generic program is Program <img src="/step_3_FRS_computation/tex/3aec9ee517c47acbb4dc2bb509d150af.svg?invert_in_darkmode&sanitize=true" align=middle width=26.851664399999994pt height=24.65753399999998pt/> on page 10 of this [super-duper long paper](https://arxiv.org/pdf/1809.06746.pdf). That program computes a polynomial <img src="/step_3_FRS_computation/tex/5b5ca9b785667ee30100b8fce0f46933.svg?invert_in_darkmode&sanitize=true" align=middle width=110.97750674999997pt height=22.648391699999998pt/> for which, if <img src="/step_3_FRS_computation/tex/d5110898628d6270c66a13ba784e9ff1.svg?invert_in_darkmode&sanitize=true" align=middle width=37.53429734999999pt height=24.65753399999998pt/> is in the FRS <img src="/step_3_FRS_computation/tex/b8bc815b5e9d5177af01fd4d3d3c2f10.svg?invert_in_darkmode&sanitize=true" align=middle width=12.85392569999999pt height=22.465723500000017pt/>, then <img src="/step_3_FRS_computation/tex/beacfec95d202f984345b778da4cf36a.svg?invert_in_darkmode&sanitize=true" align=middle width=79.8819846pt height=24.65753399999998pt/>. We want to do the same thing, but for just one <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/>, which will make a much smaller computation that can run on a laptop. So, let's first pick <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> by running the following in the MATLAB command window:
+First, let's figure out what SOS program we even want to solve. The generic program is Program <img src="/step_3_FRS_computation/tex/3aec9ee517c47acbb4dc2bb509d150af.svg?invert_in_darkmode&sanitize=true" align=middle width=26.851664399999994pt height=24.65753399999998pt/> on page 10 of this [super-duper long paper](https://arxiv.org/pdf/1809.06746.pdf). That program computes a polynomial <img src="/step_3_FRS_computation/tex/5b5ca9b785667ee30100b8fce0f46933.svg?invert_in_darkmode&sanitize=true" align=middle width=110.97750674999997pt height=22.648391699999998pt/> for which, if <img src="/step_3_FRS_computation/tex/d5110898628d6270c66a13ba784e9ff1.svg?invert_in_darkmode&sanitize=true" align=middle width=37.53429734999999pt height=24.65753399999998pt/> is in the FRS <img src="/step_3_FRS_computation/tex/b8bc815b5e9d5177af01fd4d3d3c2f10.svg?invert_in_darkmode&sanitize=true" align=middle width=12.85392569999999pt height=22.465723500000017pt/>, then <img src="/step_3_FRS_computation/tex/beacfec95d202f984345b778da4cf36a.svg?invert_in_darkmode&sanitize=true" align=middle width=79.8819846pt height=24.65753399999998pt/>. We want to do the same thing, but for just one <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/>, which will make a much smaller computation that can run on a laptop. So, let's first pick <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> as follows:
 
 ```matlab
 % chosen command
@@ -62,19 +65,16 @@ v_des = 1.0 ; % m/s
 
 
 
-#### Example 6.1: Scaling the SOS Program
+#### Example 1.1: Scaling the SOS Program
 
-Since we're computing with SOS polynomials, the first thing we need to do is scale the entire problem so that each variable lives in the domain <img src="/step_3_FRS_computation/tex/699628c77c65481a123e3649944c0d51.svg?invert_in_darkmode&sanitize=true" align=middle width=45.66218414999998pt height=24.65753399999998pt/>, and so that time lives in <img src="/step_3_FRS_computation/tex/e88c070a4a52572ef1d5792a341c0900.svg?invert_in_darkmode&sanitize=true" align=middle width=32.87674994999999pt height=24.65753399999998pt/>. Otherwise, the problem can become numerically unstable and won't converge nicely (think about what happens when you evaluate <img src="/step_3_FRS_computation/tex/fee38d3614300eba71fc667002031f27.svg?invert_in_darkmode&sanitize=true" align=middle width=15.94753544999999pt height=26.76175259999998pt/> on <img src="/step_3_FRS_computation/tex/e3950ac13bd76a194c14a76a72834d33.svg?invert_in_darkmode&sanitize=true" align=middle width=39.53182859999999pt height=21.18721440000001pt/>). To scale the problem down, we'll figure out how "far" out trajectory-producing model travels given the command above. 
+Since we're computing with SOS polynomials, the first thing we need to do is scale the entire problem so that each variable lives in the domain <img src="/step_3_FRS_computation/tex/699628c77c65481a123e3649944c0d51.svg?invert_in_darkmode&sanitize=true" align=middle width=45.66218414999998pt height=24.65753399999998pt/>, and so that time lives in <img src="/step_3_FRS_computation/tex/e88c070a4a52572ef1d5792a341c0900.svg?invert_in_darkmode&sanitize=true" align=middle width=32.87674994999999pt height=24.65753399999998pt/>. Otherwise, the problem can become numerically unstable and won't converge nicely (think about what happens when you evaluate <img src="/step_3_FRS_computation/tex/fee38d3614300eba71fc667002031f27.svg?invert_in_darkmode&sanitize=true" align=middle width=15.94753544999999pt height=26.76175259999998pt/> when <img src="/step_3_FRS_computation/tex/e3950ac13bd76a194c14a76a72834d33.svg?invert_in_darkmode&sanitize=true" align=middle width=39.53182859999999pt height=21.18721440000001pt/>). To scale the problem down, we'll figure out how "far" out trajectory-producing model travels given the command above. 
 
-First, we'll scale time to <img src="/step_3_FRS_computation/tex/acf5ce819219b95070be2dbeb8a671e9.svg?invert_in_darkmode&sanitize=true" align=middle width=32.87674994999999pt height=24.65753399999998pt/>. Recall that, in [Step 1.5](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories), we found <img src="/step_3_FRS_computation/tex/9f070416fd3580cf4c34c63f1690716a.svg?invert_in_darkmode&sanitize=true" align=middle width=65.59935854999999pt height=21.18721440000001pt/> s as our time horizon to include a fail-safe maneuver. So, if we multiply <img src="/step_3_FRS_computation/tex/190083ef7a1625fbc75f243cffb9c96d.svg?invert_in_darkmode&sanitize=true" align=middle width=9.81741584999999pt height=22.831056599999986pt/> by <img src="/step_3_FRS_computation/tex/c0213ff9cc036054ae01949a656bca82.svg?invert_in_darkmode&sanitize=true" align=middle width=13.63596464999999pt height=20.221802699999984pt/>, then the dynamics are scaled by time, so that they'll go as far over <img src="/step_3_FRS_computation/tex/034d0a6be0424bffe9a6e7ac9236c0f5.svg?invert_in_darkmode&sanitize=true" align=middle width=8.219209349999991pt height=21.18721440000001pt/> normalized second as they would've originally over <img src="/step_3_FRS_computation/tex/9b527e843dd83a6485c635f8c4366f78.svg?invert_in_darkmode&sanitize=true" align=middle width=29.22385289999999pt height=21.18721440000001pt/> s. Run the following lines to set up the timing variables:
+First, we'll scale time to <img src="/step_3_FRS_computation/tex/acf5ce819219b95070be2dbeb8a671e9.svg?invert_in_darkmode&sanitize=true" align=middle width=32.87674994999999pt height=24.65753399999998pt/>. Using the method in [Step 1.5](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories), we find <img src="/step_3_FRS_computation/tex/be6cc5f4430c9bd99233d63a60c7448d.svg?invert_in_darkmode&sanitize=true" align=middle width=29.10388634999999pt height=20.221802699999984pt/> 0.8 s as our time horizon to include a fail-safe maneuver when our initial speed is 0.75 m/s. So, if we multiply <img src="/step_3_FRS_computation/tex/190083ef7a1625fbc75f243cffb9c96d.svg?invert_in_darkmode&sanitize=true" align=middle width=9.81741584999999pt height=22.831056599999986pt/> by <img src="/step_3_FRS_computation/tex/2db35060f2b6f146752157657cfb5d5a.svg?invert_in_darkmode&sanitize=true" align=middle width=10.930443149999991pt height=20.221802699999984pt/>, then the dynamics are scaled by time, so that they'll go as far over 1 normalized second as they would've originally over 0.8 s. Run the following lines to set up the timing variables:
 
 ```matlab
 t_plan = 0.5 ;
-t_f = 0.95 ;
-t_stop = 2.61 ;
+t_f = get_t_f_from_v_0(v_0) ; % returns 0.8 s
 ```
-
-You could also just run `load('turtlebot_timing.mat')` in the command window to get these into your workspace.
 
 Now, let's get the desired trajectory for the given command, to figure out how to scale the rest of the problem:
 
@@ -114,7 +114,7 @@ initial_y =  0.0 ;
 
 
 
-#### Example 6.2: Little FRS Computation Program
+#### Example 1.2: Little FRS Computation Program
 
 For this example, we don't care about tracking error. So, we just want to find everywhere the trajectory-producing model can reach while going at the desired yaw rate and speed. We'll do so with the following program:
 <p align="center"><img src="/step_3_FRS_computation/tex/c06ec8be67f776ce40276258790f38a1.svg?invert_in_darkmode&sanitize=true" align=middle width=347.95044405pt height=104.82191114999999pt/></p>
@@ -130,11 +130,11 @@ Also, note that the _total derivative_ of <img src="/step_3_FRS_computation/tex/
 
 where <img src="/step_3_FRS_computation/tex/f4868f51fc6d4d737c16f9c81af27293.svg?invert_in_darkmode&sanitize=true" align=middle width=90.72113984999999pt height=27.91243950000002pt/> for notational convenience, and <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> is the chosen desired trajectory above. So, the first constraint in the program above tells us that <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> must be decreasing along trajectories of <img src="/step_3_FRS_computation/tex/190083ef7a1625fbc75f243cffb9c96d.svg?invert_in_darkmode&sanitize=true" align=middle width=9.81741584999999pt height=22.831056599999986pt/>.
 
-Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many <img src="/step_3_FRS_computation/tex/2b2595d381c04d836f219b7837ded4c2.svg?invert_in_darkmode&sanitize=true" align=middle width=37.916549549999985pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/d3f4e894021bcc0d88debbc6c3145196.svg?invert_in_darkmode&sanitize=true" align=middle width=70.62392369999999pt height=24.65753399999998pt/>. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> as polynomials of finite degree on <img src="/step_3_FRS_computation/tex/0992ba4780d729a0f09b874a1e8fae95.svg?invert_in_darkmode&sanitize=true" align=middle width=44.377776299999994pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> respectively. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz). Luckily, all that representation stuff is taken care of us in the background by spotless.
+Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many <img src="/step_3_FRS_computation/tex/2b2595d381c04d836f219b7837ded4c2.svg?invert_in_darkmode&sanitize=true" align=middle width=37.916549549999985pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/d3f4e894021bcc0d88debbc6c3145196.svg?invert_in_darkmode&sanitize=true" align=middle width=70.62392369999999pt height=24.65753399999998pt/>. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> as polynomials of finite degree. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz). Luckily, all that representation stuff is taken care of us in the background by the spotless toolbox.
 
 
 
-#### Example 6.3: Setting Stuff Up for the SOS Program
+#### Example 1.3: Setting Stuff Up for the SOS Program
 
 The first step to creating a SOS program with spotless is to set up the "indeterminates," which are not the decision variables, but rather are variables that the decision variables are made out of:
 
@@ -182,7 +182,7 @@ f = scale*[v_des - w_des*(y - initial_y) ;
 
 
 
-#### Example 6.4: Constructing the SOS Program Itself
+#### Example 1.4: Constructing the SOS Program Itself
 
 Now, we can use our indeterminates and semi-algebraic set definitions to create the spotless program. First, initialize the program and indeterminates, and specify the polynomial degree to use:
 
@@ -212,8 +212,8 @@ Next, we need to create the constraints of the SOS program. Luckily, spotless ma
 
 ```matlab
 % create variables for the constraints of the program (D)
-t0 = 0 ;
-V0 = subs(V,t,t0) ;
+t_0 = 0 ;
+V_0 = subs(V,t,t_0) ;
 dVdt = diff(V,t) ;
 dVdz = diff(V,z) ;
 LfV = dVdt + dVdz*f ;
@@ -224,17 +224,17 @@ LfV = dVdt + dVdz*f ;
 % -LfV > 0 on T x Z
 prog = sosOnK(prog, -LfV, [t;z], [h_T; h_Z], degree) ;
 
-% -V(0,.) > 0 on Z0
-prog = sosOnK(prog, -V0, z, h_Z0, degree) ;
+% V(t,.) + I > 1 on T x Z
+prog = sosOnK(prog, V + I - 1, [t;z], [h_T; h_Z], degree) ;
 
 % I > 0 on Z
 prog = sosOnK(prog, I, z, h_Z, degree) ;
 
-% V(t,.) + I - 1 > 0 on T x Z
-prog = sosOnK(prog, V + I - 1, [t;z], [h_T; h_Z], degree) ;
+% -V(0,.) > 0 on Z0
+prog = sosOnK(prog, -V_0, z, h_Z0, degree) ;
 ```
 
-The last constraint is what forces <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> to be greater than or equal to <img src="/step_3_FRS_computation/tex/034d0a6be0424bffe9a6e7ac9236c0f5.svg?invert_in_darkmode&sanitize=true" align=middle width=8.219209349999991pt height=21.18721440000001pt/> on the FRS. Recall that <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> is decreasing along trajectories, and, by the second constraint, it also has to be negative on the set of initial conditions. So, by the last constraint, <img src="/step_3_FRS_computation/tex/c9dd335ebf8f6df377ef056642179a06.svg?invert_in_darkmode&sanitize=true" align=middle width=127.53411329999999pt height=24.65753399999998pt/> means that <img src="/step_3_FRS_computation/tex/6b78aa0639dad385795b3d822af3ce7d.svg?invert_in_darkmode&sanitize=true" align=middle width=59.805858749999985pt height=24.65753399999998pt/> on points that are reached by trajectories of the system (i.e., the FRS).
+The last constraint is what forces <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> to be greater than or equal to 1 on the FRS. Recall that <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> is decreasing along trajectories, and, by the second constraint, it also has to be negative on the set of initial conditions. So, by the last constraint, <img src="/step_3_FRS_computation/tex/c9dd335ebf8f6df377ef056642179a06.svg?invert_in_darkmode&sanitize=true" align=middle width=127.53411329999999pt height=24.65753399999998pt/> means that <img src="/step_3_FRS_computation/tex/6b78aa0639dad385795b3d822af3ce7d.svg?invert_in_darkmode&sanitize=true" align=middle width=59.805858749999985pt height=24.65753399999998pt/> on points that are reached by trajectories of the system (i.e., the FRS).
 
 Finally, we create the cost function. Notice that it's just the integral of <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> over <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/>; in other words, our SOS program is trying to "shrinkwrap" <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> to fit around the FRS.
 
@@ -246,7 +246,7 @@ obj = int_Z(I_mon)' * I_coeff ;
 
 
 
-#### Example 6.5: Solving the SOS Program
+#### Example 1.5: Solving the SOS Program
 
 Really, all the effort is spent setting stuff up. To solve the program, first create options for the solver:
 
@@ -267,7 +267,7 @@ This takes about 0.46​ s to solve on a 2016 Macbook Pro 15" laptop.
 
 
 
-#### Example 6.6: Results
+#### Example 1.6: Results
 
 We care about using <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/>, so let's get it:
 
@@ -275,22 +275,22 @@ We care about using <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6
 I_sol = sol.eval(I) ;
 ```
 
-We want to see that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is greater than or equal to 1 where the trajectory-producing model went. So, let's create the desired trajectory:
+We want to see that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is greater than or equal to 1 where the trajectory-producing model went _with braking included_. So, let's create the desired trajectory:
 
 ```matlab
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
+% get the required stopping time
+t_stop = get_t_stop_from_v(v_0) ;
+
+% create the braking trajectory
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
 ```
 
 It'll also be nice to see how close the robot gets while tracking this desired trajectory from a variety of initial speeds. Set that up as follows:
 
 ```matlab
-initial_speed = 0.75 ; % m/s
-
 % create the initial condition
+initial_speed = 0.75 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
-
-% create the braking trajectory (i.e., include the fail-safe maneuver)
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -312,7 +312,7 @@ plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -320,7 +320,7 @@ plot(A)
 
 You should see something like this:
 
-<img src="images/image_for_example_6.png" width="600px"/>
+<img src="images/step_3_ex_1_img_1.png" width="600px"/>
 
 
 
@@ -328,13 +328,13 @@ The green contour is the level set <img src="/step_3_FRS_computation/tex/6b78aa0
 
 The desired trajectory for <img src="/step_3_FRS_computation/tex/f063d7f0ae9a5f520626fda6c9fa41bc.svg?invert_in_darkmode&sanitize=true" align=middle width=170.94760814999998pt height=24.65753399999998pt/> is shown as the blue dashed line. Notice that it fits entirely inside the FRS contour. In other words, the trajectory-producing model is indeed inside the FRS.
 
-The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.5`). This means we definitely need to include tracking error.
+The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.0`). This means we definitely need to include tracking error.
 
-Note that, in the bottom right, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts, which say the robot can somehow teleport to the very edges of the <img src="/step_3_FRS_computation/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> space. We can ignore these artifacts at runtime to prevent super conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
+Note that, in the corners of the plot, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts, which say the robot could somehow teleport to the very edges of the <img src="/step_3_FRS_computation/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> space. We can ignore these artifacts at runtime to prevent super conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
 
 
 
-## 3.3 Computing the FRS
+## 3.2 Computing the FRS
 
 Now we can compute the entire FRS for the TurtleBot. First, we'll pick a range of initial speeds and command inputs over which to compute the FRS. Then, we'll find the distance scale required to make sure the SOS program is numerically stable. Finally, we'll compute the FRS.
 
@@ -350,19 +350,19 @@ Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss r
 
 | Initial Speed Range [m/s] | Distance Scale [m] |
 | ------------------------- | ------------------ |
-| 0.0 — 0.5                 | 0.89               |
-| 0.5 — 1.0                 | 1.37               |
-| 1.0 — 1.5                 | 1.75               |
+| 0.0 — 0.5                 | 0.85               |
+| 0.5 — 1.0                 | 1.35               |
+| 1.0 — 1.5                 | 1.66               |
 
 These are saved in .mat files in `step_3_FRS_computation/data/scaling`.
 
-#### Compute the FRS
+#### Computing the FRS
 
-Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll walk through Example 7, which is a simplified version, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
+Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll walk through a simplified version, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function from the RTD repo. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
 
-### Example 7
+### Example 2
 
-Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
+Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `step_3_ex_2_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
 <p align="center"><img src="/step_3_FRS_computation/tex/6cccb1f776b4ad866a04b52ffc8c7c17.svg?invert_in_darkmode&sanitize=true" align=middle width=674.9023577999999pt height=163.99999275pt/></p>
 
 
@@ -370,14 +370,14 @@ Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_comp
 Woof, that's a lot to look at! But this is indeed Program <img src="/step_3_FRS_computation/tex/3aec9ee517c47acbb4dc2bb509d150af.svg?invert_in_darkmode&sanitize=true" align=middle width=26.851664399999994pt height=24.65753399999998pt/> on page 10 of the [Big Paper](https://arxiv.org/abs/1809.06746), just specialized to the case where <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> is 2D. We'll specify that <img src="/step_3_FRS_computation/tex/c900aacedee846398a77ce5815fea816.svg?invert_in_darkmode&sanitize=true" align=middle width=59.18030909999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> are all SOS polynomials of finite degree. Notice that we've added <img src="/step_3_FRS_computation/tex/d6328eaebbcd5c358f426dbea4bdbf70.svg?invert_in_darkmode&sanitize=true" align=middle width=15.13700594999999pt height=22.465723500000017pt/> in to the program, because we're not just computing the FRS for a single, fixed <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/> any more.
 
 The new decision variables <img src="/step_3_FRS_computation/tex/eb4779c5fded13881cb5f169b1f10c73.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/> and <img src="/step_3_FRS_computation/tex/9f0028b414617caf75a357cfb98e7497.svg?invert_in_darkmode&sanitize=true" align=middle width=20.16214364999999pt height=22.465723500000017pt/>, written as <img src="/step_3_FRS_computation/tex/9294da67e8fbc8ee3f1ac635fc79c893.svg?invert_in_darkmode&sanitize=true" align=middle width=11.989211849999991pt height=14.15524440000002pt/> in the paper, are "disturbance" variables. These polynomials will represent our <img src="/step_3_FRS_computation/tex/64ddb675e322bf1281650681445f5914.svg?invert_in_darkmode&sanitize=true" align=middle width=16.01033609999999pt height=22.831056599999986pt/> and <img src="/step_3_FRS_computation/tex/885839bf3fa334609583ddbd937afdfb.svg?invert_in_darkmode&sanitize=true" align=middle width=15.63556994999999pt height=22.831056599999986pt/> scaling factors for the tracking error. Notice that the tracking error is incorporated using the total derivative of <img src="/step_3_FRS_computation/tex/a9a3a4a202d80326bda413b5562d5cd1.svg?invert_in_darkmode&sanitize=true" align=middle width=13.242037049999992pt height=22.465723500000017pt/> with respect to <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>:
-<p align="center"><img src="/step_3_FRS_computation/tex/6e5c1d28f1dfa35bd2a47b467d0d61d8.svg?invert_in_darkmode&sanitize=true" align=middle width=472.3545981pt height=33.81208709999999pt/></p>
+<p align="center"><img src="/step_3_FRS_computation/tex/f4179cc6ad13e929cf7b769560131941.svg?invert_in_darkmode&sanitize=true" align=middle width=471.6088311pt height=37.0084374pt/></p>
 
 
 Next, we'll set up all the objects required to actually solve this program with spotless and MOSEK. Luckily, we don't have to write the whole program out — it will be generated for us automatically by `compute_FRS`.
 
 
 
-#### Example 7.1: Set up Timing and Spaces
+#### Example 2.1: Set up Timing and Spaces
 
 First, load the relevant info and pick the SOS polynomial degree:
 
@@ -412,8 +412,6 @@ Next, create the polynomials that define the semi-algebraic representations of o
 ```matlab
 Z_range = [-1, 1 ; -1, 1] ; % z \in [-1,1]^2
 
-Z0_radius = footprint/distance_scale ; % z(0) \in Z_0
-
 K_range = [-1, 1 ; -1, 1] ; % k \in [-1,1]^2
 
 h_Z = (z - Z_range(:,1)).*(Z_range(:,2) - z) ;
@@ -426,7 +424,7 @@ h_K = (k - K_range(:,1)).*(K_range(:,2) - k) ;
 
 
 
-#### Example 7.2: Set up the Dynamics
+#### Example 2.2: Set up the Dynamics
 
 Notice that <img src="/step_3_FRS_computation/tex/5537cda6dac51f6d1e672a0f75f3746e.svg?invert_in_darkmode&sanitize=true" align=middle width=89.26936094999998pt height=26.76175259999998pt/>; in other words, we are letting <img src="/step_3_FRS_computation/tex/aa90653a26bc63b138fb304972d81589.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> and <img src="/step_3_FRS_computation/tex/a8ebf8c468236800b8ed78d42ddbfa57.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> vary between -1 and 1. But our desired yaw rate and speed aren't always between -1 and 1, so, we have to write them in terms of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. The yaw rate is pretty easy:
 
@@ -460,7 +458,7 @@ Notice that these dynamics are now nonlinear with respect to our indeterminates!
 
 
 
-#### Example 7.3: Set up the Tracking Error Function
+#### Example 2.3: Set up the Tracking Error Function
 
 Next, we have to define <img src="/step_3_FRS_computation/tex/af543e4935b79ac4b4967e46a594d4c2.svg?invert_in_darkmode&sanitize=true" align=middle width=82.29823964999999pt height=24.65753399999998pt/>. First, let's get <img src="/step_3_FRS_computation/tex/08926724d3ef194857807025173aaf91.svg?invert_in_darkmode&sanitize=true" align=middle width=15.29495549999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6b6744ce28bcf96f11b21c52f6c47c2f.svg?invert_in_darkmode&sanitize=true" align=middle width=14.92018934999999pt height=14.15524440000002pt/>. Recall that they are both degree 3 polynomials of time, so we'll first create monomials <img src="/step_3_FRS_computation/tex/c56e4e18ef488354b6ab1f706c305395.svg?invert_in_darkmode&sanitize=true" align=middle width=61.872158699999986pt height=26.76175259999998pt/>:
 
@@ -490,7 +488,7 @@ Note that all this is done in a slightly more automated way in the example scrip
 
 
 
-#### Example 7.4: Creating the SOS Problem Structure
+#### Example 2.4: Creating the SOS Problem Structure
 
 To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> over the domain <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. We created `Z_range` and `K_range` earlier to make this a bit easier:
 
@@ -515,7 +513,7 @@ solver_input_problem.degree = degree ;
 
 
 
-#### Example 7.5: Running the SOS Program
+#### Example 2.5: Running the SOS Program
 
 After all that setup, it's actually pretty easy to run the SOS program to compute the FRS:
 
@@ -527,7 +525,7 @@ You should see MOSEK solve the program. For degree 4, the solve time is 3.3 s wi
 
 
 
-#### Example 7.6: Results
+#### Example 2.6: Results
 
 Now we can visualize the results! First, let's extract the program output:
 
@@ -558,18 +556,15 @@ Now, set up and move the TurtleBot:
 
 ```matlab
 % create the initial condition
-initial_speed = 0.5 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the desired trajectory
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+t_stop = get_t_stop_from_v(initial_speed) ;
+[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
 
 % move the robot
 A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T(end),T,U,Z) ;
 ```
 
 Finally, plot the subset of the FRS in <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> corresponding to this choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>:
@@ -587,7 +582,7 @@ plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot(Z(1,:),Z(2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -595,34 +590,13 @@ plot(A)
 
 You should see something like this:
 
-<img src="images/image_1_for_example_7.png" width="600px"/>
+<img src="images/step_3_ex_2_img_1.png" width="600px"/>
 
 
 
 As before, the green contour is the level set of the FRS, given our choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. The blue circle at the origin is the robot's initial condition. The blue dashed line is the desired trajectory. The robot is the blue circle with an arrow in it.
 
-Notice that the FRS is super conservative — the contour is really large, and doesn't lie entirely in the <img src="/step_3_FRS_computation/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> box we defined. You can see that by running the following to plot the FRS and initial condition set unscaled and unshifted:
-
-```matlab
-plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
-plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
-```
-
-Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. In addition, because we're including <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>, we're always going to be a bit conservative.
-
-For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
-
-```
-distance_scale = 1.5 * distance_scale ;
-```
-
-You should see this:
-
-<img src="images/image_2_for_example_7.png" width="600px"/>
-
-It's still really conservative, but at least we got the whole FRS scaled right.
-
-
+Notice that the FRS is pretty conservative -- it definitely includes more than 3 cm of buffer distance around the robot, as we would expect given our tracking error function. However, we can reduce the conservatism by increasing the degree.
 
 ## 3.4 Computing a Less Conservative FRS
 
@@ -632,21 +606,21 @@ This computation took 1.6 hrs per initial speed range on a server with many many
 
 You'll find the degree 4, 6, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
-### Example 8
+### Example 3
 
 We'll compare the solutions for degrees 4, 6, and 10 now. This code is in `example_8_visualize_turtlebot_FRS.m`.
 
 First, to visualize the degree 10 solution for the 0.0 — 0.5 m/s FRS, run the following:
 
 ```matlab
-FRS_info = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat')
+FRS = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat')
 k_eval = [0.75 ; 1.0]
-visualize_turtlebot_FRS(FRS_info,k_eval)
+visualize_turtlebot_FRS(FRS,k_eval)
 ```
 
 This just shows you how to use the function `visualize_turtlebot_FRS`, which takes in an loaded FRS .mat file and a <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to evaluate.
 
-Now, if you run `example_8_visualize_turtlebot_FRS.m`, you should see something like this:
+If you run `step_3_ex_3_visualize_turtlebot_FRS.m`, you should see something like this:
 
 <img src="images/image_for_example_8.png" width="600px"/>
 
