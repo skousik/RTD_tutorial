@@ -20,7 +20,7 @@ p_world = [0;1] ;
 p_FRS = [0;0] ;
 
 % FRS to use
-FRS = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
+FRS = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
 
 %% automated from here
 % create turtlebot

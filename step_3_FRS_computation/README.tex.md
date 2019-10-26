@@ -6,7 +6,7 @@
 
 Now that we have a [dynamic model](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) and a [tracking error function](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function), we can compute a Forward-Reachable Set (FRS) for the TurtleBot. Note that there are also simple examples of the FRS computation in the [RTD repository](https://github.com/ramvasudevan/RTD/tree/master/examples/offline_FRS_computation).
 
-## 3.1 Summary
+## Summary
 
 In this step, we use sums-of-squares (SOS) programming to conservatively approximate an indicator function the FRS of the TurtleBot. We could also use other reachability methods, but this one lets us represent the FRS with polynomials, which end up being useful for online planning in the next step.
 
@@ -46,6 +46,9 @@ g\circ[d_x,d_y]^\top = \begin{bmatrix} g_x\cdot d_x \\ g_y \cdot d_y\end{bmatrix
 $$
 
 
+
+
+
 ### Goals for This Step
 
 The key takeaways from the math are the following. We use $f$ to denote the trajectory-producing model, and $Z_0$ to denote the robot's body or "footprint" at the beginning of any planning iteration. We use $K$ to denote the space of trajectory parameters, and $Z$ to denote the plane of $(x,y)$ points. We proceed as follows:
@@ -57,13 +60,13 @@ The first computation is to illustrate what the FRS looks like. The second compu
 
 
 
-## 3.2 FRS for a Single Trajectory
+## 3.1 FRS for a Single Trajectory
 
-Now we'll compute the FRS for a single desired trajectory, to illustrate how the FRS computation is written as a SOS program with spotless and MOSEK. The following code is all in `example_6_FRS_with_fixed_traj_params.m`. We'll walk through it in a slightly different order here.
+We'll begin by computing the FRS for a single desired trajectory, to illustrate how the FRS computation is written as a SOS program with spotless and MOSEK. The following code is all in `step_3_ex_1_FRS_with_fixed_traj_params`. We'll walk through it in a slightly different order here.
 
-### Example 6
+### Example 1
 
-First, let's figure out what SOS program we even want to solve. The generic program is Program $(D)$ on page 10 of this [super-duper long paper](https://arxiv.org/pdf/1809.06746.pdf). That program computes a polynomial $w: Z \times K \to \mathbb{R}$ for which, if $(z,k)$ is in the FRS $F$, then $w(z,k) \geq 1$. We want to do the same thing, but for just one $k \in K$, which will make a much smaller computation that can run on a laptop. So, let's first pick $k$ by running the following in the MATLAB command window:
+First, let's figure out what SOS program we even want to solve. The generic program is Program $(D)$ on page 10 of this [super-duper long paper](https://arxiv.org/pdf/1809.06746.pdf). That program computes a polynomial $w: Z \times K \to \mathbb{R}$ for which, if $(z,k)$ is in the FRS $F$, then $w(z,k) \geq 1$. We want to do the same thing, but for just one $k \in K$, which will make a much smaller computation that can run on a laptop. So, let's first pick $k$ as follows:
 
 ```matlab
 % chosen command
@@ -73,19 +76,16 @@ v_des = 1.0 ; % m/s
 
 
 
-#### Example 6.1: Scaling the SOS Program
+#### Example 1.1: Scaling the SOS Program
 
-Since we're computing with SOS polynomials, the first thing we need to do is scale the entire problem so that each variable lives in the domain $[-1,1]$, and so that time lives in $[0, 1]$. Otherwise, the problem can become numerically unstable and won't converge nicely (think about what happens when you evaluate $x^6$ on $x > 1$). To scale the problem down, we'll figure out how "far" out trajectory-producing model travels given the command above. 
+Since we're computing with SOS polynomials, the first thing we need to do is scale the entire problem so that each variable lives in the domain $[-1,1]$, and so that time lives in $[0, 1]$. Otherwise, the problem can become numerically unstable and won't converge nicely (think about what happens when you evaluate $x^6$ when $x > 1$). To scale the problem down, we'll figure out how "far" out trajectory-producing model travels given the command above. 
 
-First, we'll scale time to $[0,1]$. Recall that, in [Step 1.5](https://github.com/skousik/RTD_tutorial/tree/master/step1_desired_trajectories), we found $t_f = 0.95$ s as our time horizon to include a fail-safe maneuver. So, if we multiply $f$ by $t_f$, then the dynamics are scaled by time, so that they'll go as far over $1$ normalized second as they would've originally over $0.95$ s. Run the following lines to set up the timing variables:
+First, we'll scale time to $[0,1]$. Using the method in [Step 1.5](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories), we find $t_{\mathrm{f}} =$ 0.8 s as our time horizon to include a fail-safe maneuver when our initial speed is 0.75 m/s. So, if we multiply $f$ by $t_{\mathrm{f}}$, then the dynamics are scaled by time, so that they'll go as far over 1 normalized second as they would've originally over 0.8 s. Run the following lines to set up the timing variables:
 
 ```matlab
 t_plan = 0.5 ;
-t_f = 0.95 ;
-t_stop = 2.61 ;
+t_f = get_t_f_from_v_0(v_0) ; % returns 0.8 s
 ```
-
-You could also just run `load('turtlebot_timing.mat')` in the command window to get these into your workspace.
 
 Now, let's get the desired trajectory for the given command, to figure out how to scale the rest of the problem:
 
@@ -125,7 +125,7 @@ initial_y =  0.0 ;
 
 
 
-#### Example 6.2: Little FRS Computation Program
+#### Example 1.2: Little FRS Computation Program
 
 For this example, we don't care about tracking error. So, we just want to find everywhere the trajectory-producing model can reach while going at the desired yaw rate and speed. We'll do so with the following program:
 $$
@@ -151,11 +151,11 @@ $$
 
 where $f = [f_x, f_y]^\top$ for notational convenience, and $k$ is the chosen desired trajectory above. So, the first constraint in the program above tells us that $V$ must be decreasing along trajectories of $f$.
 
-Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many $t \in T$ and $(x,y) \in Z$. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify $V$ and $I$ as polynomials of finite degree on $T\times Z$ and $Z$ respectively. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz). Luckily, all that representation stuff is taken care of us in the background by spotless.
+Note, this isn't a SOS program yet! This is an infinite-dimensional program, since the constraints have to hold for uncountably many $t \in T$ and $(x,y) \in Z$. In addition, the decision variables as written are just generic functions. To turn this into a finite-dimensional SOS program, we specify $V$ and $I$ as polynomials of finite degree. This lets use represent the infinite number of constraints with a finite number of polynomial coefficients using a [beautiful math trick](https://en.wikipedia.org/wiki/Stengle's_Positivstellensatz). Luckily, all that representation stuff is taken care of us in the background by the spotless toolbox.
 
 
 
-#### Example 6.3: Setting Stuff Up for the SOS Program
+#### Example 1.3: Setting Stuff Up for the SOS Program
 
 The first step to creating a SOS program with spotless is to set up the "indeterminates," which are not the decision variables, but rather are variables that the decision variables are made out of:
 
@@ -208,7 +208,7 @@ f = scale*[v_des - w_des*(y - initial_y) ;
 
 
 
-#### Example 6.4: Constructing the SOS Program Itself
+#### Example 1.4: Constructing the SOS Program Itself
 
 Now, we can use our indeterminates and semi-algebraic set definitions to create the spotless program. First, initialize the program and indeterminates, and specify the polynomial degree to use:
 
@@ -238,8 +238,8 @@ Next, we need to create the constraints of the SOS program. Luckily, spotless ma
 
 ```matlab
 % create variables for the constraints of the program (D)
-t0 = 0 ;
-V0 = subs(V,t,t0) ;
+t_0 = 0 ;
+V_0 = subs(V,t,t_0) ;
 dVdt = diff(V,t) ;
 dVdz = diff(V,z) ;
 LfV = dVdt + dVdz*f ;
@@ -250,17 +250,17 @@ LfV = dVdt + dVdz*f ;
 % -LfV > 0 on T x Z
 prog = sosOnK(prog, -LfV, [t;z], [h_T; h_Z], degree) ;
 
-% -V(0,.) > 0 on Z0
-prog = sosOnK(prog, -V0, z, h_Z0, degree) ;
+% V(t,.) + I > 1 on T x Z
+prog = sosOnK(prog, V + I - 1, [t;z], [h_T; h_Z], degree) ;
 
 % I > 0 on Z
 prog = sosOnK(prog, I, z, h_Z, degree) ;
 
-% V(t,.) + I - 1 > 0 on T x Z
-prog = sosOnK(prog, V + I - 1, [t;z], [h_T; h_Z], degree) ;
+% -V(0,.) > 0 on Z0
+prog = sosOnK(prog, -V_0, z, h_Z0, degree) ;
 ```
 
-The last constraint is what forces $I$ to be greater than or equal to $1$ on the FRS. Recall that $V$ is decreasing along trajectories, and, by the second constraint, it also has to be negative on the set of initial conditions. So, by the last constraint, $I(z) > 1 - V(t,z)$ means that $I(z) \geq 1$ on points that are reached by trajectories of the system (i.e., the FRS).
+The last constraint is what forces $I$ to be greater than or equal to 1 on the FRS. Recall that $V$ is decreasing along trajectories, and, by the second constraint, it also has to be negative on the set of initial conditions. So, by the last constraint, $I(z) > 1 - V(t,z)$ means that $I(z) \geq 1$ on points that are reached by trajectories of the system (i.e., the FRS).
 
 Finally, we create the cost function. Notice that it's just the integral of $I$ over $Z$; in other words, our SOS program is trying to "shrinkwrap" $I$ to fit around the FRS.
 
@@ -272,7 +272,7 @@ obj = int_Z(I_mon)' * I_coeff ;
 
 
 
-#### Example 6.5: Solving the SOS Program
+#### Example 1.5: Solving the SOS Program
 
 Really, all the effort is spent setting stuff up. To solve the program, first create options for the solver:
 
@@ -293,7 +293,7 @@ This takes about 0.46​ s to solve on a 2016 Macbook Pro 15" laptop.
 
 
 
-#### Example 6.6: Results
+#### Example 1.6: Results
 
 We care about using $I$, so let's get it:
 
@@ -301,22 +301,22 @@ We care about using $I$, so let's get it:
 I_sol = sol.eval(I) ;
 ```
 
-We want to see that $I$ is greater than or equal to 1 where the trajectory-producing model went. So, let's create the desired trajectory:
+We want to see that $I$ is greater than or equal to 1 where the trajectory-producing model went _with braking included_. So, let's create the desired trajectory:
 
 ```matlab
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
+% get the required stopping time
+t_stop = get_t_stop_from_v(v_0) ;
+
+% create the braking trajectory
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
 ```
 
 It'll also be nice to see how close the robot gets while tracking this desired trajectory from a variety of initial speeds. Set that up as follows:
 
 ```matlab
-initial_speed = 0.75 ; % m/s
-
 % create the initial condition
+initial_speed = 0.75 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
-
-% create the braking trajectory (i.e., include the fail-safe maneuver)
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
 
 % move the robot
 A.reset(z0)
@@ -338,7 +338,7 @@ plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -346,7 +346,7 @@ plot(A)
 
 You should see something like this:
 
-<img src="images/image_for_example_6.png" width="600px"/>
+<img src="images/step_3_ex_1_img_1.png" width="600px"/>
 
 
 
@@ -354,13 +354,13 @@ The green contour is the level set $I(z) \geq 1$. The dark blue circle at the or
 
 The desired trajectory for $k = (0.5\ \mathrm{rad/s}, 1.0\ \mathrm{m/s})$ is shown as the blue dashed line. Notice that it fits entirely inside the FRS contour. In other words, the trajectory-producing model is indeed inside the FRS.
 
-The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.5`). This means we definitely need to include tracking error.
+The blue circle with an arrow is the robot, which executes a trajectory with braking. Notice that it just barely fits inside the FRS. If you vary the `initial_speed` variable and run the robot again, it'll end up somewhere else. Some initial conditions will cause the robot to leave the FRS contour (try `initial_speed = 1.0`). This means we definitely need to include tracking error.
 
-Note that, in the bottom right, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts, which say the robot can somehow teleport to the very edges of the $[-1,1]^2$ space. We can ignore these artifacts at runtime to prevent super conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
+Note that, in the corners of the plot, there is a little bit of green. This is actually also part of the FRS contour which results from the fact that we only used a degree 6 polynomial. Since the SOS program's numerical implementation produces a conservative result, there are sometimes such artifacts, which say the robot could somehow teleport to the very edges of the $[-1,1]^2$ space. We can ignore these artifacts at runtime to prevent super conservative behavior. Recall that we distance-scaled the entire FRS based on the robot's dynamics. This means that the _actual_ FRS lies in the unit disc in the scaled and shfited coordiantes used by the SOS program. So, online, we only need to consider obstacles that lie in the unit disc when scaled and shifted down. We'll write the code to do that in the [online planning step](https://github.com/skousik/RTD_tutorial/tree/master/step_4_online_planning).
 
 
 
-## 3.3 Computing the FRS
+## 3.2 Computing the FRS
 
 Now we can compute the entire FRS for the TurtleBot. First, we'll pick a range of initial speeds and command inputs over which to compute the FRS. Then, we'll find the distance scale required to make sure the SOS program is numerically stable. Finally, we'll compute the FRS.
 
@@ -376,19 +376,19 @@ Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss r
 
 | Initial Speed Range [m/s] | Distance Scale [m] |
 | ------------------------- | ------------------ |
-| 0.0 — 0.5                 | 0.89               |
-| 0.5 — 1.0                 | 1.37               |
-| 1.0 — 1.5                 | 1.75               |
+| 0.0 — 0.5                 | 0.85               |
+| 0.5 — 1.0                 | 1.35               |
+| 1.0 — 1.5                 | 1.66               |
 
 These are saved in .mat files in `step_3_FRS_computation/data/scaling`.
 
-#### Compute the FRS
+#### Computing the FRS
 
-Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll walk through Example 7, which is a simplified version, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
+Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll walk through a simplified version, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function from the RTD repo. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
 
-### Example 7
+### Example 2
 
-Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `example_7_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
+Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `step_3_ex_2_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
 $$
 \begin{array}{clll}
 {\underset{V, I, D_1, D_2}{\inf}} & {\int_{Z\times K} I(z, k) d \lambda_{Z\times K}} & {} & {}\\
@@ -408,7 +408,7 @@ Woof, that's a lot to look at! But this is indeed Program $(D)$ on page 10 of th
 
 The new decision variables $D_1$ and $D_2$, written as $q_i$ in the paper, are "disturbance" variables. These polynomials will represent our $d_x$ and $d_y$ scaling factors for the tracking error. Notice that the tracking error is incorporated using the total derivative of $V$ with respect to $g$:
 $$
-\mathcal{L}_gV(t,z) = \frac{\partial}{\partial t} V(t,z) + \frac{\partial}{\partial x}V(t,z)\cdot g_x(z,k) + \frac{\partial}{\partial x}V(t,z)\cdot g_y(z,k).
+\mathcal{L}_gV(t,z) = \frac{\partial}{\partial t} V(t,z) + \frac{\partial}{\partial x}V(t,z)\cdot g_x(z,k) + \frac{\partial}{\partial y}V(t,z)\cdot g_y(z,k).
 $$
 
 
@@ -416,7 +416,7 @@ Next, we'll set up all the objects required to actually solve this program with 
 
 
 
-#### Example 7.1: Set up Timing and Spaces
+#### Example 2.1: Set up Timing and Spaces
 
 First, load the relevant info and pick the SOS polynomial degree:
 
@@ -451,8 +451,6 @@ Next, create the polynomials that define the semi-algebraic representations of o
 ```matlab
 Z_range = [-1, 1 ; -1, 1] ; % z \in [-1,1]^2
 
-Z0_radius = footprint/distance_scale ; % z(0) \in Z_0
-
 K_range = [-1, 1 ; -1, 1] ; % k \in [-1,1]^2
 
 h_Z = (z - Z_range(:,1)).*(Z_range(:,2) - z) ;
@@ -465,7 +463,7 @@ h_K = (k - K_range(:,1)).*(K_range(:,2) - k) ;
 
 
 
-#### Example 7.2: Set up the Dynamics
+#### Example 2.2: Set up the Dynamics
 
 Notice that $K = [-1,1]^2$; in other words, we are letting $k_1$ and $k_2$ vary between -1 and 1. But our desired yaw rate and speed aren't always between -1 and 1, so, we have to write them in terms of $k$. The yaw rate is pretty easy:
 
@@ -499,7 +497,7 @@ Notice that these dynamics are now nonlinear with respect to our indeterminates!
 
 
 
-#### Example 7.3: Set up the Tracking Error Function
+#### Example 2.3: Set up the Tracking Error Function
 
 Next, we have to define $g = (g_x, g_y )$. First, let's get $g_x$ and $g_y$. Recall that they are both degree 3 polynomials of time, so we'll first create monomials $1, t, t^2, t^3$:
 
@@ -540,7 +538,7 @@ Note that all this is done in a slightly more automated way in the example scrip
 
 
 
-#### Example 7.4: Creating the SOS Problem Structure
+#### Example 2.4: Creating the SOS Problem Structure
 
 To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates $I$ over the domain $Z \times K$. We created `Z_range` and `K_range` earlier to make this a bit easier:
 
@@ -565,7 +563,7 @@ solver_input_problem.degree = degree ;
 
 
 
-#### Example 7.5: Running the SOS Program
+#### Example 2.5: Running the SOS Program
 
 After all that setup, it's actually pretty easy to run the SOS program to compute the FRS:
 
@@ -577,7 +575,7 @@ You should see MOSEK solve the program. For degree 4, the solve time is 3.3 s wi
 
 
 
-#### Example 7.6: Results
+#### Example 2.6: Results
 
 Now we can visualize the results! First, let's extract the program output:
 
@@ -608,18 +606,15 @@ Now, set up and move the TurtleBot:
 
 ```matlab
 % create the initial condition
-initial_speed = 0.5 ; % m/s
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the desired trajectory
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+t_stop = get_t_stop_from_v(initial_speed) ;
+[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
 
 % move the robot
 A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T(end),T,U,Z) ;
 ```
 
 Finally, plot the subset of the FRS in $Z$ corresponding to this choice of $k$:
@@ -637,7 +632,7 @@ plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot(Z(1,:),Z(2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -645,34 +640,13 @@ plot(A)
 
 You should see something like this:
 
-<img src="images/image_1_for_example_7.png" width="600px"/>
+<img src="images/step_3_ex_2_img_1.png" width="600px"/>
 
 
 
 As before, the green contour is the level set of the FRS, given our choice of $k$. The blue circle at the origin is the robot's initial condition. The blue dashed line is the desired trajectory. The robot is the blue circle with an arrow in it.
 
-Notice that the FRS is super conservative — the contour is really large, and doesn't lie entirely in the $[-1,1]^2$ box we defined. You can see that by running the following to plot the FRS and initial condition set unscaled and unshifted:
-
-```matlab
-plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
-plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
-```
-
-Since this example used a degree 4 representation of the FRS, it's not a very "tight" fit. We can increase the degree to get the fit better, but note that any degree above 8 is going to have a hard time solving on a laptop. In addition, because we're including $g$, we're always going to be a bit conservative.
-
-For this degree 4 case, one thing that helps is simply increasing the distance scaling so the SOS program is smaller. Add the following line to `example_7_compute_turtlebot_FRS.m` after loading the scaling and run it again:
-
-```
-distance_scale = 1.5 * distance_scale ;
-```
-
-You should see this:
-
-<img src="images/image_2_for_example_7.png" width="600px"/>
-
-It's still really conservative, but at least we got the whole FRS scaled right.
-
-
+Notice that the FRS is pretty conservative -- it definitely includes more than 3 cm of buffer distance around the robot, as we would expect given our tracking error function. However, we can reduce the conservatism by increasing the degree.
 
 ## 3.4 Computing a Less Conservative FRS
 
@@ -682,21 +656,21 @@ This computation took 1.6 hrs per initial speed range on a server with many many
 
 You'll find the degree 4, 6, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
-### Example 8
+### Example 3
 
 We'll compare the solutions for degrees 4, 6, and 10 now. This code is in `example_8_visualize_turtlebot_FRS.m`.
 
 First, to visualize the degree 10 solution for the 0.0 — 0.5 m/s FRS, run the following:
 
 ```matlab
-FRS_info = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat')
+FRS = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat')
 k_eval = [0.75 ; 1.0]
-visualize_turtlebot_FRS(FRS_info,k_eval)
+visualize_turtlebot_FRS(FRS,k_eval)
 ```
 
 This just shows you how to use the function `visualize_turtlebot_FRS`, which takes in an loaded FRS .mat file and a $k$ to evaluate.
 
-Now, if you run `example_8_visualize_turtlebot_FRS.m`, you should see something like this:
+If you run `step_3_ex_3_visualize_turtlebot_FRS.m`, you should see something like this:
 
 <img src="images/image_for_example_8.png" width="600px"/>
 

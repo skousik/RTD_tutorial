@@ -1,7 +1,7 @@
 function t_stop = get_t_stop_from_v(v,delta_v,v_max,accel)
 % t_stop = get_t_stop_from_v(v,delta_v,v_max,accel)
 %
-% Given an initial speed v, compute the amount of time needed for the
+% Given a current speed v, compute the amount of time needed for the
 % Turtlebot to brake to a stop, given a maximum allowable commanded change
 % in speed (delta_v), a maximum speed (v_max), and a maximum acceleration
 % (accel).

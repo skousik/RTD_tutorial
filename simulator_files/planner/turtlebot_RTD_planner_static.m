@@ -291,8 +291,9 @@ classdef turtlebot_RTD_planner_static < planner
                 v_des = full(msubs(FRS_cur.v_des,FRS_cur.k,k_opt)) ;
 
                 % create the desired trajectory
+                t_stop = v_des / 2 ;
                 [T,U,Z] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
-                            FRS_cur.t_f,FRS_cur.t_stop,w_des,v_des) ;
+                            t_stop,w_des,v_des) ;
             else
             % if fmincon was unsuccessful, try to continue executing the
             % previous plan
@@ -323,7 +324,7 @@ classdef turtlebot_RTD_planner_static < planner
                     % create stopped control input
                     T = [0, 2*P.t_move] ;
                     U = zeros(2,2) ;
-                    Z = [repmat(agent_state(1:3),1,2) ; zeros(1,2)] ;
+                    Z = [zeros(4,2)] ;
                 end
                 
                 % make sure the new plan is long enough
@@ -333,6 +334,12 @@ classdef turtlebot_RTD_planner_static < planner
                     Z = [Z, [Z(1:3,end);0] ] ;
                 end
             end
+            
+            % move the plan to where the agent current is
+            Z(1:2,:) = local_to_world(agent_state, Z(1:2,:)) ;
+            
+            % rotate the plan's heading state appropriately
+            Z(3,:) = Z(3,:) + agent_state(3,:) ;
             
             % save the new plan
             P.current_plan.T = T ;

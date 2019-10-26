@@ -3,15 +3,16 @@
 % the entire TurtleBot FRS.
 %
 % Author: Shreyas Kousik
-% Date: 20 May 2019
+% Created: 20 May 2019
+% Updated: 26 Oct 2019
 %
 %% user parameters
 % uncomment one of the following lines to load the relevant error function
 % data; we'll compute the FRS for that error function
 
-% filename = 'turtlebot_error_functions_v0_0.0_to_0.5.mat' ;
-% filename = 'turtlebot_error_functions_v0_0.5_to_1.0.mat' ;
-filename = 'turtlebot_error_functions_v0_1.0_to_1.5.mat' ;
+% filename = 'turtlebot_error_functions_v_0_0.0_to_0.5.mat' ;
+% filename = 'turtlebot_error_functions_v_0_0.5_to_1.0.mat' ;
+filename = 'turtlebot_error_functions_v_0_1.0_to_1.5.mat' ;
 
 %% automated from here
 % load timing info
@@ -29,36 +30,38 @@ A = turtlebot_agent ;
 % create the range of command inputs and initial conditions
 w_range = [0, w_max] ;
 v_range = [-delta_v, delta_v] ;
-v0_range = [v0_min, v0_max] ;
+v_0_range = [v_0_min, v_0_max] ;
 
 % initialize time and distance scales
-time_scale = t_f ;
+time_scale = get_t_f_from_v_0(v_0_min) ;
 distance_scale_x = 0 ;
 distance_scale_y = 0 ;
 
+% get the stopping time for the given speed range
+t_stop = get_t_stop_from_v(max(v_0_max)) ;
+
 % iterate through yaw rates, speeds, and initial conditions
-for v0 = v0_range
-    
+for v_0 = v_0_range    
     for w_des = w_range
-        v_des_range = v0 + v_range ;
+        v_des_range = v_0 + v_range ;
         
         for v_des_cur = v_des_range
             % make sure we're not above the max speed
             v_des = bound_values(v_des_cur,[0, max_speed]) ;
             
             % reset the agent
-            z0 = [0;0;0;v0] ;
+            z0 = [0;0;0;v_0] ;
             A.reset(z0) ;
             
             % create the trajectory to execute
-            [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_f,t_stop,w_des,v_des) ;
+            [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
             
             % run the agent
             A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
             
             % find the distance traveled
             distance_scale_x = max(distance_scale_x,max(A.state(A.position_indices(1),:))) ;
-            distance_scale_y = max(distance_scale_y,2*max(A.state(A.position_indices(2),:))) ; 
+            distance_scale_y = max(distance_scale_y,2*max(A.state(A.position_indices(2),:))) ;
         end
     end
 end
@@ -73,9 +76,9 @@ initial_x = -0.5 ;
 initial_y = 0 ;
 
 %% save output
-filename = ['turtlebot_FRS_scaling_v0_',...
-            num2str(v0_min,'%0.1f'),'_to_',...
-            num2str(v0_max,'%0.1f'),'.mat'] ;
+filename = ['turtlebot_FRS_scaling_v_0_',...
+    num2str(v_0_min,'%0.1f'),'_to_',...
+    num2str(v_0_max,'%0.1f'),'.mat'] ;
 save(filename,'time_scale','distance_scale',...
     'distance_scale_x','distance_scale_y',...
     'max_speed',...

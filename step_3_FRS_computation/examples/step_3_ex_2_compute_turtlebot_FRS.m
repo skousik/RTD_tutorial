@@ -4,24 +4,21 @@
 %
 % Author: Shreyas Kousik
 % Created: 21 May 2019
-% Updated: 7 June 2019
+% Updated: 26 Oct 2019
 %
 %% user parameters
 % degree of SOS polynomial solution
 degree = 4 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
 
 % trajectory parameter to visualize after computing the FRS:
-initial_speed = 0.5 ; % m/s
+initial_speed = 0.25 ; % m/s
 k_eval = [0.5 ; 1] ;
 
 %% automated from here
 % load timing
 load('turtlebot_timing.mat')
-load('turtlebot_error_functions_v0_0.0_to_0.5.mat')
-load('turtlebot_FRS_scaling_v0_0.0_to_0.5.mat')
-
-% adjust scaling to make the degree 4 FRS fit inside the [-1,1]^2 box
-distance_scale = 1.5 * distance_scale ;
+load('turtlebot_error_functions_v_0_0.0_to_0.5.mat')
+load('turtlebot_FRS_scaling_v_0_0.0_to_0.5.mat')
 
 % create agent to use for footprint
 A = turtlebot_agent ;
@@ -53,7 +50,7 @@ h_K = (k - K_range(:,1)).*(K_range(:,2) - k) ;
 w_des = w_max*k(1) ;
 
 % set up v_des in terms of k_2
-v_range = [v0_min - delta_v, v0_max + delta_v] ;
+v_range = [v_0_min - delta_v, v_0_max + delta_v] ;
 v_range = bound_values(v_range,[0, max_speed]) ;
 v_des = (diff(v_range)/2)*k(2) + mean(v_range) ;
 
@@ -107,14 +104,12 @@ v_in = full(msubs(v_des,k,k_eval)) ;
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the desired trajectory
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+t_stop = get_t_stop_from_v(initial_speed) ;
+[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
 
 % move the robot
 A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T(end),T,U,Z) ;
 
 %% visualize FRS indicator function polynomial
 figure(1) ; clf ; axis equal ; hold on ;
@@ -129,7 +124,7 @@ plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot(Z(1,:),Z(2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)

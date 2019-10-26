@@ -2,6 +2,10 @@
 % This script visualizes the TurtleBot FRS computed for degrees 4, 6, and
 % 10, all on the same plot.
 %
+% Author: Shreyas Kousik
+% Created: 21 May 2019
+% Updated: 26 Oct 2019
+%
 %% user parameters
 % trajectory parameter to evaluate
 k_eval = [-1;1] ;
@@ -10,28 +14,28 @@ k_eval = [-1;1] ;
 initial_speed = 0.75 ;
 
 % speed range (uncomment out one of the following)
-v0_range = [0.0, 0.5] ;
-% v0_range = [0.5, 1.0] ;
-% v0_range = [1.0, 1.5] ;
+v_0_range = [0.0, 0.5] ;
+% v_0_range = [0.5, 1.0] ;
+% v_0_range = [1.0, 1.5] ;
 
 %% automated from here
 % load timing
 load('turtlebot_timing.mat')
 
 % load FRSes
-switch v0_range(1)
+switch v_0_range(1)
     case 0.0
-        FRS_4 = load('turtlebot_FRS_deg_4_v0_0.0_to_0.5.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v0_0.0_to_0.5.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+        FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.0_to_0.5.mat') ;
+        FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.0_to_0.5.mat') ;
+        FRS_10 = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
     case 0.5
-        FRS_4 = load('turtlebot_FRS_deg_4_v0_0.5_to_1.0.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v0_0.5_to_1.0.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
+        FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.5_to_1.0.mat') ;
+        FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.5_to_1.0.mat') ;
+        FRS_10 = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
     case 1.0
-        FRS_4 = load('turtlebot_FRS_deg_4_v0_1.0_to_1.5.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v0_1.0_to_1.5.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
+        FRS_4 = load('turtlebot_FRS_deg_4_v_0_1.0_to_1.5.mat') ;
+        FRS_6 = load('turtlebot_FRS_deg_6_v_0_1.0_to_1.5.mat') ;
+        FRS_10 = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
     otherwise
         error('Hey! You picked an invalid speed range for the tutorial!')
 end
@@ -57,10 +61,8 @@ v_in = full(msubs(v_des,k,k_eval)) ;
 z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
 
 % create the desired trajectory
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_in,v_in) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+t_stop = get_t_stop_from_v(initial_speed) ;
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
 
 % move the robot
 A.reset(z0)
@@ -99,7 +101,7 @@ plot_2D_msspoly_contour(I_z_10,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
     'Offset',O10,'Scale',D10)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)

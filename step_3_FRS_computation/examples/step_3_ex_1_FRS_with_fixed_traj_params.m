@@ -1,22 +1,20 @@
 %% description
 % This script computes an FRS for the TurtleBot given a particular, fixed
-% command input. So, the problem is only 3-D (x,y,t), which can be solved
+% trajectory. So, the problem is only 3-D (x,y,t), which can be solved
 % on most laptops. In addition, we don't include the tracking error
-% function, which further reduces memory requirements.
+% function, thereby further reducing memory requirements.
 %
 % Author: Shreyas Kousik
-% Date: 16 May 2019
+% Created: 16 May 2019
+% Updated: 26 Oct 2019
 %
 %% user parameters
-% chosen command
+% desired trajectory parameters
 w_des = 0.5 ; % rad/s
 v_des = 1.0 ; % m/s
 
 % initial speed (varying this will change tracking for visualization)
-initial_speed = 0.75 ; % m/s
-
-% timing information
-load('turtlebot_timing.mat')
+v_0 = 0.75 ; % m/s
 
 % sums-of-squares polynomial degree
 degree = 6 ; % this should be an even number
@@ -30,6 +28,12 @@ degree = 6 ; % this should be an even number
 % get the robot's footprint
 A = turtlebot_agent ;
 footprint = A.footprint ;
+
+% get timing timing information
+load('turtlebot_timing.mat')
+
+% get t_f for the given initial speed
+t_f = get_t_f_from_v_0(v_0) ;
 
 % make the trajectory we are computing an FRS for; notice that the dynamics
 % are time-scaled by t_f, then ode45 is called over the time horizon [0,1],
@@ -94,8 +98,8 @@ I_mon = monomials(z, 0:degree) ;
 [prog, I, I_coeff] = prog.newFreePoly(I_mon) ;
 
 % create variables for the constraints of the program (D)
-t0 = 0 ;
-V0 = subs(V,t,t0) ;
+t_0 = 0 ;
+V_0 = subs(V,t,t_0) ;
 dVdt = diff(V,t) ;
 dVdz = diff(V,z) ;
 LfV = dVdt + dVdz*f ;
@@ -113,7 +117,7 @@ prog = sosOnK(prog, V + I - 1, [t;z], [h_T; h_Z], degree) ;
 prog = sosOnK(prog, I, z, h_Z, degree) ;
 
 % -V(0,.) > 0 on Z0
-prog = sosOnK(prog, -V0, z, h_Z0, degree) ;
+prog = sosOnK(prog, -V_0, z, h_Z0, degree) ;
 
 % define the cost function (the integral of I over the domain Z)
 int_Z = boxMoments(z, [-1;-1], [1;1]) ; % this integrates I over Z
@@ -134,13 +138,13 @@ I_sol = sol.eval(I) ;
 
 %% get actual trajectory of agent
 % create the initial condition
-z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
+z0 = [0;0;0;v_0] ; % (x,y,h,v)
 
-% create the desired trajectory
-[T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
+% get the required stopping time
+t_stop = get_t_stop_from_v(v_0) ;
 
 % create the braking trajectory
-[T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(t_plan,t_stop,T_go,U_go,Z_go) ;
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
 
 % move the robot
 A.reset(z0)
@@ -159,7 +163,7 @@ plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
