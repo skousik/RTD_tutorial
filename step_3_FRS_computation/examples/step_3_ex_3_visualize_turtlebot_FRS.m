@@ -1,24 +1,23 @@
 %% description
 % This script visualizes the TurtleBot FRS computed for degrees 4, 6, and
-% 10, all on the same plot.
+% 8, all on the same plot.
 %
 % Author: Shreyas Kousik
 % Created: 21 May 2019
 % Updated: 26 Oct 2019
 %
 %% user parameters
-% trajectory parameter to evaluate
-k_eval = [-1;1] ;
+% trajectory to evaluate
+w_des = 1 ;
+v_des = 1.5 ;
 
 % robot initial condition
-initial_speed = 0.75 ;
-
-% speed range (uncomment out one of the following)
-v_0_range = [0.0, 0.5] ;
-% v_0_range = [0.5, 1.0] ;
-% v_0_range = [1.0, 1.5] ;
+v_0 = 1.25 ;
 
 %% automated from here
+% load the v_0 range for the given initial speed
+v_0_range = get_v_0_range_from_v_0(v_0) ;
+
 % load timing
 load('turtlebot_timing.mat')
 
@@ -27,15 +26,15 @@ switch v_0_range(1)
     case 0.0
         FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.0_to_0.5.mat') ;
         FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.0_to_0.5.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
+        FRS_8 = load('turtlebot_FRS_deg_8_v_0_0.0_to_0.5.mat') ;
     case 0.5
         FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.5_to_1.0.mat') ;
         FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.5_to_1.0.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+        FRS_8 = load('turtlebot_FRS_deg_8_v_0_0.5_to_1.0.mat') ;
     case 1.0
         FRS_4 = load('turtlebot_FRS_deg_4_v_0_1.0_to_1.5.mat') ;
         FRS_6 = load('turtlebot_FRS_deg_6_v_0_1.0_to_1.5.mat') ;
-        FRS_10 = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
+        FRS_8 = load('turtlebot_FRS_deg_8_v_0_1.0_to_1.5.mat') ;
     otherwise
         error('Hey! You picked an invalid speed range for the tutorial!')
 end
@@ -49,20 +48,21 @@ k = FRS_4.k ;
 % get agent
 A = turtlebot_agent ;
 
-% get w_des and v_des in terms of k
-w_des = FRS_4.w_des ;
-v_des = FRS_4.v_des ;
+% create k_eval from w_des and v_des
+k_eval = get_k_from_w_and_v(FRS_4,w_des,v_des) ;
 
-% create w_des and v_des from k_eval
-w_in = full(msubs(w_des,k,k_eval)) ;
-v_in = full(msubs(v_des,k,k_eval)) ;
+% fix the initial speed
+if abs(v_des - v_0) > delta_v
+    error('Please pick v_0 and v_des so that |v_0 - v_des| <= delta_v')
+end
 
 % create the initial condition
-z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
+z0 = [0;0;0;v_0] ; % (x,y,h,v)
 
 % create the desired trajectory
-t_stop = get_t_stop_from_v(initial_speed) ;
-[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
+%t_stop = get_t_stop_from_v(v_0) ; 
+t_stop = v_0 / A.max_accel
+[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
 
 % move the robot
 A.reset(z0)
@@ -75,8 +75,8 @@ O4 = -D4 * [FRS_4.initial_x ; FRS_4.initial_y] ;
 D6 = FRS_6.distance_scale ;
 O6 = -D6 * [FRS_6.initial_x ; FRS_6.initial_y] ;
 
-D10 = FRS_10.distance_scale ;
-O10= -D10 * [FRS_10.initial_x ; FRS_10.initial_y] ;
+D8 = FRS_8.distance_scale ;
+O8= -D8 * [FRS_8.initial_x ; FRS_8.initial_y] ;
 
 %% plot
 figure(1) ; clf ; hold on ; axis equal
@@ -95,10 +95,10 @@ I_z_6 = msubs(FRS_6.FRS_polynomial,k,k_eval) ;
 plot_2D_msspoly_contour(I_z_6,z,1,'LineWidth',1.5,'Color',0.6*[0.1 1 0.3],...
     'Offset',O6,'Scale',D6)
 
-% plot degree 10 FRS
-I_z_10 = msubs(FRS_10.FRS_polynomial,k,k_eval) ;
-plot_2D_msspoly_contour(I_z_10,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
-    'Offset',O10,'Scale',D10)
+% plot degree 8 FRS
+I_z_8 = msubs(FRS_8.FRS_polynomial,k,k_eval) ;
+plot_2D_msspoly_contour(I_z_8,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
+    'Offset',O8,'Scale',D8)
 
 % plot the desired trajectory
 plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)

@@ -9,7 +9,7 @@
 %
 %% user parameters
 % degree of SOS polynomial solution
-degree = 6 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
+degree = 4 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
 
 % include tracking error or not (this slows down the computation)
 include_tracking_error = true ;
