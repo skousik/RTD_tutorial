@@ -1,4 +1,4 @@
-**TL;DR**: See `example_7_compute_turtlebot_FRS.m`, and run the script `compute_turtlebot_FRS.m`.
+**TL;DR**: See `step_3_ex_2_compute_turtlebot_FRS.m`, and run the script `step_3_compute_turtlebot_FRS.m`.
 
 # Step 3: Forward Reachable Set Computation
 
