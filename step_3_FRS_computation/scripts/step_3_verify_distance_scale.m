@@ -7,7 +7,8 @@
 % Note that this script requires the FRS .mat files computed in Step 3.
 %
 % Author: Shreyas Kousik
-% Date: 29 May 2019
+% Created: 29 May 2019
+% Updated: - 
 %
 %% user parameters
 % agent pose in SE(2)
@@ -20,7 +21,7 @@ p_world = [0;1] ;
 p_FRS = [0;0] ;
 
 % FRS to use
-FRS = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+FRS = load('turtlebot_FRS_deg_4_v_0_0.5_to_1.0.mat') ;
 
 %% automated from here
 % create turtlebot

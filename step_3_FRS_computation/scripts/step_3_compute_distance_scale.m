@@ -1,10 +1,10 @@
 %% description
 % This script computes the distance scaling needed to compute an FRS for
-% the entire TurtleBot FRS.
+% the Turtlebot FRS.
 %
 % Author: Shreyas Kousik
 % Created: 20 May 2019
-% Updated: 26 Oct 2019
+% Updated: 28 Oct 2019
 %
 %% user parameters
 % uncomment one of the following lines to load the relevant error function
@@ -12,7 +12,7 @@
 
 % filename = 'turtlebot_error_functions_v_0_0.0_to_0.5.mat' ;
 % filename = 'turtlebot_error_functions_v_0_0.5_to_1.0.mat' ;
-filename = 'turtlebot_error_functions_v_0_1.0_to_1.5.mat' ;
+% filename = 'turtlebot_error_functions_v_0_1.0_to_1.5.mat' ;
 
 %% automated from here
 % load timing info
@@ -38,7 +38,7 @@ distance_scale_x = 0 ;
 distance_scale_y = 0 ;
 
 % get the stopping time for the given speed range
-t_stop = get_t_stop_from_v(max(v_0_max)) ;
+t_f = get_t_f_from_v_0(v_0_min) ;
 
 % iterate through yaw rates, speeds, and initial conditions
 for v_0 = v_0_range    
@@ -53,11 +53,11 @@ for v_0 = v_0_range
             z0 = [0;0;0;v_0] ;
             A.reset(z0) ;
             
-            % create the trajectory to execute
-            [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+            % create the trajectory to realize
+            [T,U,Z] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
             
             % run the agent
-            A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+            A.move(T(end),T,U,Z) ;
             
             % find the distance traveled
             distance_scale_x = max(distance_scale_x,max(A.state(A.position_indices(1),:))) ;

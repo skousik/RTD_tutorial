@@ -25,9 +25,6 @@ delta_v = 0.25 ; % m/s
 % number of samples in v_0, w, and v
 N_samples = 4 ;
 
-% timing
-t_sample = 0.01 ;
-
 %% automated from here
 % create turtlebot
 A = turtlebot_agent ;
@@ -38,11 +35,8 @@ v_0_vec = linspace(v_0_min,v_0_max,N_samples) ;
 % create yaw commands
 w_vec = linspace(w_min,w_max,N_samples) ;
 
-% load timing
-load('turtlebot_timing.mat') ;
-
-% get the stopping time given the worst-case scenario initial condition
-t_stop = get_t_stop_from_v(v_0_max) ;
+% get time horizon of desired trajectory
+t_f = get_t_f_from_v_0(v_0_min) ;
 
 % initialize arrays for saving tracking error data
 x_err = [] ;
@@ -65,8 +59,8 @@ for v_0 = v_0_vec
     
     for w_des = w_vec
         for v_des = v_vec
-            % make the braking trajectory
-            [T_des,U_des,Z_des] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+            % make the desired trajectory
+            [T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
             
             % reset the robot
             A.reset(z_0)
@@ -74,29 +68,26 @@ for v_0 = v_0_vec
             % track the desired trajectory
             A.move(T_des(end),T_des,U_des,Z_des) ;
             
-            % get the executed position trajectory
+            % get the realized position trajectory
             T = A.time ;
-            Z = A.state(A.position_indices,:) ;
+            X = A.state(A.position_indices,:) ;
             
-            % interpolate the executed trajectory to match the braking traj timing
-            pos = match_trajectories(T_des,T,Z) ;
-            
-            % get the desired trajectory
-            pos_des = Z_des(1:2,:) ;
+            % interpolate the desired and realized trajectory to match
+            X_des = Z_des(1:2,:) ;
+            X = match_trajectories(T_des,T,X) ;
             
             % compute the tracking error
-            pos_err = pos - pos_des ;
+            pos_err = X - X_des ;
             
             % collect the data
             x_err = [x_err ; pos_err(1,:)] ;
             y_err = [y_err ; pos_err(2,:)] ;
             
             % % FOR DEBUGGING:
-            % figure(1) ; clf ; axis equal ; hold on ;
+            % figure(1) ; clf ; hold on ; axis equal; grid on ;
+            % plot_path(X,'b--','LineWidth',1.5) ;
             % plot(A)
-            % plot_path(Z_des(1:2,:),'b--','LineWidth',1.5)
-            % 
-            % pause
+            % figure(2) ; clf ; plot(pos_err')
         end
     end
 end
@@ -158,6 +149,7 @@ g_x_handle =  plot(T_des,int_g_x_vals,'r-','LineWidth',1.5) ;
 title('tracking error vs. time')
 ylabel('x error [m]')
 legend(g_x_handle,'\int g_x(t) dt','Location','NorthWest')
+axis([0, t_f, 0, 0.03])
 set(gca,'FontSize',15)
 
 % plot y error
@@ -167,4 +159,5 @@ g_y_handle = plot(T_des,int_g_y_vals,'r-','LineWidth',1.5) ;
 xlabel('time [s]')
 ylabel('y error [m]')
 legend(g_y_handle,'\int g_y(t) dt','Location','NorthWest')
+axis([0, t_f, 0, 0.01])
 set(gca,'FontSize',15)

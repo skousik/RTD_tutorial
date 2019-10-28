@@ -4,12 +4,12 @@
 %
 % Author: Shreyas Kousik
 % Created: 16 May 2019
-% Updated: 24 Oct 2019
+% Updated: 28 Oct 2019
 %
 %% user parameters
 % initial condition (we only care about the initial condition in speed,
 % because the dynamics are position/rotation invariant)
-initial_speed = 0.75 ; % m/s
+v_0 = 0.75 ; % m/s
 
 % command bounds
 w_des = 1.0 ; % rad/s ;
@@ -19,34 +19,24 @@ v_des = 1.0 ; % m/s
 % create turtlebot
 A = turtlebot_agent ;
 
-% create initial condition vector
-v_0 = initial_speed ;
-
-% load timing
-load('turtlebot_timing.mat') ;
-
-% find t_stop for the current initial speed
-t_stop = get_t_stop_from_v(v_0) ;
-
-%% trajectory setup and tracking
 % create the initial condition
 z0 = [0;0;0;v_0] ; % (x,y,h,v)
-
-% make the braking trajectory
-[T_des,U_des,Z_des] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
-
-% reset the robot
 A.reset(z0)
+
+%% trajectory setup and tracking
+% make the desired trajectory
+t_f = get_t_f_from_v_0(v_0) ;
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % track the desired trajectory
 A.move(T_des(end),T_des,U_des,Z_des) ;
 
 %% tracking error computation
-% get the executed position trajectory
+% get the realized position trajectory
 T = A.time ;
 Z = A.state(A.position_indices,:) ;
 
-% interpolate the executed trajectory to match the braking traj timing
+% interpolate the realized trajectory to match the braking traj timing
 pos = match_trajectories(T_des,T,Z) ;
 
 % get the desired trajectory
@@ -59,10 +49,10 @@ y_err = pos_err(2,:) ;
 
 %% plot robot
 figure(1) ; clf ; hold on ; axis equal ; grid on ;
-plot_path(Z_des(1:2,:),'b--','LineWidth',1.5)
+plot_path(Z_des,'b--','LineWidth',1.5)
 plot_path(Z,'b','LineWidth',1.5)
 plot(A)
-legend('desired traj','executed traj')
+legend('desired traj','realized traj')
 title('robot showing tracking error')
 xlabel('x [m]')
 ylabel('y [m]')
@@ -77,13 +67,3 @@ xlabel('time [s]')
 ylabel('error [m]')
 legend('x error','y error')
 set(gca,'FontSize',15)
-
-%% plot trajectories vs. desired trajectories
-% figure(3) ; clf ; hold on ;
-% plot(T_des,Z_des','b--','LineWidth',1.5)
-% plot(T,A.state','b','LineWidth',1.5)
-% title('desired vs. realized trajectories')
-% % legend('x des','y des','\theta des','v des','x','y','\theta','v')
-% xlabel('time [s]')
-% ylabel('states')
-% set(gca,'FontSize',15)

@@ -239,10 +239,10 @@ Plotting the relevant values, we see that the non-braking trajectory travels far
 
 
 
-Note that $t_{\mathrm{f}}$ is only used for FRS computations later on. At runtime, when we're making a braking trajectory, we compute `t_stop` as the duration needed to stop from the maximum possible desired speed, given the current speed `v_0`.
+Note that $t_{\mathrm{f}}$ is used for tracking error and FRS computations later on. At runtime, when we're making a braking trajectory, we compute `t_stop` as the duration needed to stop from the desired speed:
 
 ```matlab
-t_stop = min(v_0 + delta_v, v_max) ./ A.max_accel
+t_stop = v_des ./ A.max_accel
 ```
 
 

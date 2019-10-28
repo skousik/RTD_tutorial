@@ -15,29 +15,13 @@ v_des = 1.5 ;
 v_0 = 1.25 ;
 
 %% automated from here
-% load the v_0 range for the given initial speed
-v_0_range = get_v_0_range_from_v_0(v_0) ;
-
 % load timing
 load('turtlebot_timing.mat')
 
-% load FRSes
-switch v_0_range(1)
-    case 0.0
-        FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.0_to_0.5.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.0_to_0.5.mat') ;
-        FRS_8 = load('turtlebot_FRS_deg_8_v_0_0.0_to_0.5.mat') ;
-    case 0.5
-        FRS_4 = load('turtlebot_FRS_deg_4_v_0_0.5_to_1.0.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v_0_0.5_to_1.0.mat') ;
-        FRS_8 = load('turtlebot_FRS_deg_8_v_0_0.5_to_1.0.mat') ;
-    case 1.0
-        FRS_4 = load('turtlebot_FRS_deg_4_v_0_1.0_to_1.5.mat') ;
-        FRS_6 = load('turtlebot_FRS_deg_6_v_0_1.0_to_1.5.mat') ;
-        FRS_8 = load('turtlebot_FRS_deg_8_v_0_1.0_to_1.5.mat') ;
-    otherwise
-        error('Hey! You picked an invalid speed range for the tutorial!')
-end
+% load the right FRS
+FRS_4 = get_FRS_from_v_0(v_0,4) ;
+FRS_6 = get_FRS_from_v_0(v_0,6) ;
+FRS_8 = get_FRS_from_v_0(v_0,8) ;
 
 % get one h_Z0 to plot
 h_Z0 = FRS_4.h_Z0 ;
@@ -60,13 +44,16 @@ end
 z0 = [0;0;0;v_0] ; % (x,y,h,v)
 
 % create the desired trajectory
-%t_stop = get_t_stop_from_v(v_0) ; 
-t_stop = v_0 / A.max_accel
+t_stop = get_t_stop_from_v(v_des) ;
 [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+
+% put trajectory into FRS frame
+Z_FRS = world_to_FRS(Z_des(1:2,:),zeros(3,1),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
 
 % move the robot
 A.reset(z0)
 A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+
 
 %% create offsets and distance scales for the FRSes
 D4 = FRS_4.distance_scale ;
@@ -100,8 +87,8 @@ I_z_8 = msubs(FRS_8.FRS_polynomial,k,k_eval) ;
 plot_2D_msspoly_contour(I_z_8,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
     'Offset',O8,'Scale',D8)
 
-% plot the desired trajectory
-plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
+% plot the desired (braking) trajectory
+plot_path(Z_brk,'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)

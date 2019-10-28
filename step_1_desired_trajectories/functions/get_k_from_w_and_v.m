@@ -6,7 +6,7 @@ function k = get_k_from_w_and_v(FRS,w,v)
 %
 % Author: Shreyas Kousik
 % Created: 26 Oct 2019
-% Updated: -
+% Updated: 28 Oct 2019
 
     % allocate
     k = nan(2,1) ;
@@ -15,6 +15,5 @@ function k = get_k_from_w_and_v(FRS,w,v)
     k(1) = w / FRS.w_max ;
     
     % get k_2
-    v_mean = mean(FRS.v_range) ;
-    k(2) = (2/diff(FRS.v_range)).*(v - v_mean) ;
+    k(2) = (2/diff(FRS.v_range)).*(v - mean(FRS.v_range)) ;
 end

@@ -6,7 +6,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 16 May 2019
-% Updated: 26 Oct 2019
+% Updated: 28 Oct 2019
 %
 %% user parameters
 % desired trajectory parameters
@@ -70,12 +70,12 @@ h_Z = (z - [-1;-1]) .* ([1;1] - z) ;
 
 % create a circular footprint for the initial condition
 h_Z0 = 1 - ((x - initial_x)/(footprint/distance_scale)).^2 + ...
-         - ((y - initial_y)/(footprint/distance_scale)).^2 ;
+    - ((y - initial_y)/(footprint/distance_scale)).^2 ;
 
 % create trajectory-producing model
 scale = (time_scale/distance_scale) ;
-f = scale*[v_des - w_des*(y - initial_y) ;
-    + w_des*(x - initial_x)] ;
+f = scale*[v_des - distance_scale*w_des*(y - initial_y) ;
+                 + distance_scale*w_des*(x - initial_x)] ;
 
 %% create the spotless program to solve
 % note that this code is also in the compute_FRS.m file in the RTD repo,
@@ -121,7 +121,7 @@ prog = sosOnK(prog, -V_0, z, h_Z0, degree) ;
 
 % define the cost function (the integral of I over the domain Z)
 int_Z = boxMoments(z, [-1;-1], [1;1]) ; % this integrates I over Z
-obj = int_Z(I_mon)' * I_coeff ; 
+obj = int_Z(I_mon)' * I_coeff ;
 
 %% solve for FRS
 options = spot_sdp_default_options() ;
@@ -140,15 +140,12 @@ I_sol = sol.eval(I) ;
 % create the initial condition
 z0 = [0;0;0;v_0] ; % (x,y,h,v)
 
-% get the required stopping time
-t_stop = get_t_stop_from_v(v_0) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+% create the desired trajectory
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % move the robot
 A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T_des(end),T_des,U_des,Z_des) ;
 
 %% visualize FRS indicator function polynomial
 figure(1) ; clf ; axis equal ; hold on ;
@@ -163,7 +160,7 @@ plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
+plot_path(Z_des(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)

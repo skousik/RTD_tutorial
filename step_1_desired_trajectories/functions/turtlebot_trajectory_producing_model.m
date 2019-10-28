@@ -8,18 +8,18 @@ function zd = turtlebot_trajectory_producing_model(t,z,T_in,U_in)
 %
 % Author: Shreyas Kousik
 % Created: 12 May 2019
+% Updated: 28 Oct 2019
 
-    % extract states
-    x = z(1) ;
-    y = z(2) ;
-    
+    % get heading state
+    h = z(3) ;
+
     % get inputs
     u = match_trajectories(t,T_in,U_in) ;
     w_des = u(1) ;
     v_des = u(2) ;
-    
+
     % compute dynamics
-    zd = [v_des - w_des*y ;
-          w_des*x ;
+    zd = [v_des*cos(h) ;
+          v_des*sin(h) ;
           w_des ] ;
-end
+    end

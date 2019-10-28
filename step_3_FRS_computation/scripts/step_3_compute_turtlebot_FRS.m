@@ -5,8 +5,9 @@
 %
 % Author: Shreyas Kousik
 % Created: 20 May 2019
-% Updated: 26 Oct 2019
+% Updated: 28 Oct 2019
 %
+clear ; clc ; close all ;
 %% user parameters
 % degree of SOS polynomial solution
 degree = 4 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
@@ -14,10 +15,10 @@ degree = 4 ; % this should be 4 or 6 unless you have like 100+ GB of RAM
 % include tracking error or not (this slows down the computation)
 include_tracking_error = true ;
 
-% speed range (uncomment out one of the following)
-% v_0_range = [0.0, 0.5] ;
+% speed range (uncomment one of the following)
+v_0_range = [0.0, 0.5] ;
 % v_0_range = [0.5, 1.0] ;
-v_0_range = [1.0, 1.5] ;
+% v_0_range = [1.0, 1.5] ;
 
 % whether or not to save output
 save_result = true ;
@@ -38,7 +39,7 @@ switch v_0_range(1)
         load('turtlebot_error_functions_v_0_1.0_to_1.5.mat')
         load('turtlebot_FRS_scaling_v_0_1.0_to_1.5.mat')
     otherwise
-        error('Hey! You picked an invalid speed range for the tutorial!')
+        error('Hey! You picked an invalid speed range for the RTD tutorial!')
 end
 
 % create agent to use for footprint
@@ -79,8 +80,8 @@ v_des = (diff(v_range)/2)*k(2) + mean(v_range) ;
 
 % create dynamics
 scale = (time_scale/distance_scale) ;
-f = scale*[v_des - w_des*(y - initial_y) ;
-                 + w_des*(x - initial_x)] ;
+f = scale*[v_des - distance_scale*w_des*(y - initial_y) ;
+                 + distance_scale*w_des*(x - initial_x)] ;
 
 % create tracking error dynamics; first, make the monomials of time in
 % decreasing power order
@@ -124,7 +125,8 @@ if save_result
                 num2str(v_0_min,'%0.1f'),'_to_',...
                 num2str(v_0_max,'%0.1f'),'.mat'] ;
 
-    % save!
+    % save output
+    disp(['Saving FRS output to file: ',filename])
     save(filename,'FRS_polynomial','FRS_lyapunov_function','t','z','k',...
         'time_scale','distance_scale',...
         'v_0_min','v_0_max','v_des','w_des',...
@@ -132,19 +134,3 @@ if save_result
         't_plan','v_range','delta_v','degree','h_Z','h_Z0','h_K',...
         'w_max','w_min')
 end
-
-%% visualize the output
-% prep
-I = FRS_polynomial ;
-I_z = msubs(I,k,[0;1]) ;
-
-% plot
-figure(1) ; clf ; hold on ;
-
-plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b')
-plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
-
-axis equal
-set(gca,'FontSize',15)
-xlabel('x [m]')
-ylabel('y [m]')

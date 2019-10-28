@@ -15,11 +15,11 @@ function [T,U,Z] = make_turtlebot_desired_trajectory(t_f,w_des,v_des)
 %
 % Author: Shreyas Kousik
 % Created: 12 May 2019
-% Updated: 30 May 2019
+% Updated: 28 May 2019
 
     % set up timing
     t_sample = 0.01 ;
-    T = unique([0:t_sample:t_f,t_f]);
+    T = unique([0:t_sample:t_f,t_f],'stable');
     N_t = length(T) ;
     
     % get inputs for desired trajectories

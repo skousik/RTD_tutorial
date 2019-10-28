@@ -4,33 +4,27 @@
 %
 % Author: Shreyas Kousik
 % Created: 16 May 2019
-% Updated: 25 Oct 2019
+% Updated: 28 Oct 2019
 %
 %% user parameters
 % initial condition (we only care about the initial condition in speed,
 % because the dynamics are position/rotation invariant)
-initial_speed = 0.75 ; % m/s
+v_0 = 1.5 ; % m/s
 
 % command bounds
 w_min = -1.0 ; % rad/s
 w_max =  1.0 ; % rad/s
 delta_v = 0.25 ; % m/s
+v_max = 1.5 ;
 
 % number of samples in w and v
 N_samples = 4 ;
 
-% timing
-t_sample = 0.01 ;
-
 %% automated from here
-% load timing
-load('turtlebot_timing.mat')
-
 % create turtlebot
 A = turtlebot_agent ;
 
 % create initial condition vector
-v_0 = initial_speed ;
 z_0 = [0;0;0;v_0] ; % (x,y,h,v)
 
 % create yaw commands
@@ -38,9 +32,10 @@ w_vec = linspace(w_min,w_max,N_samples) ;
 
 % create the feasible speed commands from the initial condition
 v_vec = linspace(v_0 - delta_v, v_0 + delta_v, N_samples) ;
+v_vec = unique(bound_values(v_vec,[0, v_max])) ;
 
-% get the stopping time given the fixed initial condition
-t_stop = get_t_stop_from_v(v_0) ;
+% get time horizon of desired trajectory
+t_f = get_t_f_from_v_0(v_0) ;
 
 % set up arrays to save x and y error data
 x_err = [] ;
@@ -53,7 +48,7 @@ tic
 for w_des = w_vec
     for v_des = v_vec
         % make the braking trajectory
-        [T_des,U_des,Z_des] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+        [T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
         
         % reset the robot
         A.reset(z_0)
@@ -61,22 +56,26 @@ for w_des = w_vec
         % track the desired trajectory
         A.move(T_des(end),T_des,U_des,Z_des) ;
         
-        % get the executed position trajectory
+        % get the realized position trajectory
         T = A.time ;
-        Z = A.state(A.position_indices,:) ;
+        X = A.state(A.position_indices,:) ;
         
-        % interpolate the executed trajectory to match the braking traj timing
-        pos = match_trajectories(T_des,T,Z) ;
-        
-        % get the desired trajectory
-        pos_des = Z_des(1:2,:) ;
+        % interpolate the desired and realized trajectory to match
+        X_des = Z_des(1:2,:) ;
+        X = match_trajectories(T_des,T,X) ;
         
         % compute the tracking error
-        pos_err = pos - pos_des ;
+        pos_err = X - X_des ;
         
         % collect the data
         x_err = [x_err ; pos_err(1,:)] ;
         y_err = [y_err ; pos_err(2,:)] ;
+        
+        % % FOR DEBUGGING:
+        % figure(1) ; clf ; hold on ; axis equal; grid on ;
+        % plot_path(X,'b--','LineWidth',1.5) ;
+        % plot(A)
+        % figure(2) ; clf ; plot(pos_err')
     end
 end
 toc
@@ -136,7 +135,7 @@ set(gca,'FontSize',15)
 subplot(2,1,2) ; hold on ;
 plot(T_des,y_err','k--')
 g_y_handle = plot(T_des,int_g_y_vals,'r-','LineWidth',1.5) ;
-xlabel('time [s]')
+xlabel('% of trajectory')
 ylabel('y error [m]')
 legend(g_y_handle,'\int g_y(t) dt','Location','NorthWest')
 axis([0 T_des(end) 0 0.01])

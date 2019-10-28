@@ -67,7 +67,7 @@ First, we'll see how the initial speed affects tracking error. As you vary the i
 
 ### Example 1
 
-This code is in `step_2_ex_1_tracking_error_single_traj.m`.
+The following code is in `step_2_ex_1_tracking_error_single_traj.m`.
 
 #### Example 1.1: An Example Trajectory
 
@@ -75,34 +75,38 @@ First, let's set up the situation and the robot
 
 ```matlab
 % initial condition
-initial_speed = 0.75 ; % m/s
+v_0 = 0.75 ; % m/s
 
 % command bounds
 w_des = 1.0 ; % rad/s ;
 v_des = 1.0 ; % m/s
 
-% create the turtlebot
-A = turtlebot_agent() ;
-A.reset([0;0;0;initial_speed])
+% create turtlebot
+A = turtlebot_agent ;
+
+% create the initial condition
+z0 = [0;0;0;v_0] ; % (x,y,h,v)
+A.reset(z0)
 ```
 
-Now, make the desired trajectory, and include braking for the robot.
+Now, make the desired trajectory.
 
 ```matlab
-[T_des,U_des,Z_des] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+t_f = get_t_f_from_v_0(v_0) ;
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 ```
 
-Track the desired trajectory:
+Then, track the desired trajectory:
 
 ```
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T_des(end),T_des,U_des,Z_des) ;
 ```
 
-Now we can visualize the tracking error similar to how we did in Step 1:
+We can visualize the tracking error similar to how we did in Step 1:
 
 ```matlab
 figure(1) ; hold on ; axis equal ;
-plot_path(Z_des(1:2,:),'b--','LineWidth',1.5)
+plot_path(Z_des,'b--','LineWidth',1.5)
 plot_path(Z,'b','LineWidth',1.5)
 plot(A)
 ```
@@ -113,14 +117,14 @@ plot(A)
 
 #### Example 1.2: Computing the Tracking Error
 
-We compute the tracking error by directly comparing the executed trajectory to the planned trajectory:
+We compute the tracking error by directly comparing the realized trajectory to the planned trajectory:
 
 ```matlab
-% get the executed position trajectory
+% get the realized position trajectory
 T = A.time ;
 Z = A.state(A.position_indices,:) ;
 
-% interpolate the executed trajectory to match the braking traj timing
+% interpolate the realized trajectory to match the braking traj timing
 pos = match_trajectories(T_des,T,Z) ;
 
 % get the desired trajectory
@@ -140,7 +144,9 @@ If we plot the tracking error, we see that it's under 2cm for the whole trajecto
 
 #### Remark
 
-If we're doing things with dynamic obstacles, we must include the fail-safe maneuver explicitly in the desired trajectory, because the FRS has to include time. We have written [a paper that shows how to do this](https://arxiv.org/abs/1902.02851).
+We are only looking at the tracking error for _non-braking_ trajectories. This is because we will compute our reachability analysis for such trajectories in Step 3, and because we know from Step 1 that our braking trajectories travel less far than non-braking trajectories. Furthermore, since the Turtlebot's yaw rate and acceleration are decoupled in its dynamic mode, and the yaw tracking error is what causes an offset from our trajectory over its entire time horizon, the tracking error will not be worse when tracking a braking trajectory versus a non-braking trajectory. You can verify this for yourself by looking at `step_2_inspect_turtlebot_desired_vs_braking_traj.m`.
+
+Note that, if we're doing things with dynamic obstacles, we must include the fail-safe maneuver explicitly in the desired trajectory, because the FRS has to include time. We have written [a paper that shows how to do this](https://arxiv.org/abs/1902.02851).
 
 
 
@@ -184,7 +190,7 @@ The black dashed lines are individual tracking error trajectories. We fit the tr
 
 ### Computing the Tracking Error Function
 
-Now, we can compute the tracking error over a a range of initial speeds, which is done by the script `step_2_compute_tracking_error_function.m`. First, the user specifies a range of initial speeds:
+Now, we can compute the tracking error over a a range of initial speeds, which is done by the script `step_2_compute_tracking_error_function.m`. First, we specify a range of initial speeds:
 
 ```matlab
 v_0_min = 1.0 ; % m/s
@@ -197,7 +203,7 @@ We sample this range of speeds, and compute the tracking error by taking the max
 
 
 
-This script fits the tracking error function $g$ as a polynomial to upper bound the data. It then saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v_0_1.0_to_1.5.mat` by default. The filename changes depending on the range of initial speeds. In the `step2_error_function/data/` folder, $g$ has been precomputed for three ranges: 0.0 - 0.5 m/s, 0.5 - 1.0 m/s, and 1.0 - 1.5 m/s.
+This script fits the tracking error function $g$ as a polynomial to upper bound the data. It then saves the polynomial coefficients and command bound data to the file `turtlebot_error_functions_v_0_1.0_to_1.5.mat` by default. The filename changes depending on the range of initial speeds. In the `step_2_error_function/data/` folder, $g$ has been precomputed for three ranges: 0.0 - 0.5 m/s, 0.5 - 1.0 m/s, and 1.0 - 1.5 m/s.
 
 We'll use the tracking error function to compute an FRS over each initial speed range next.
 
