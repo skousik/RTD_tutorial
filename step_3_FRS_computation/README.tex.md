@@ -570,7 +570,7 @@ You should see MOSEK solve the program. For degree 4, the solve time is 3.3 s wi
 
 
 
-## Visualizing the FRS
+## 3.3 Visualizing the FRS
 
 Now we can visualize the results! This code is all in `step_3_ex_2_visualize_turtlebot_FRS.m`.
 
@@ -644,7 +644,7 @@ As before, the green contour is the level set of the FRS, given our choice of $k
 
 Notice that the FRS is pretty conservative -- it definitely includes more than 3 cm of buffer distance around the robot, (which we expect given our tracking error function). However, we can reduce the conservatism by increasing the degree.
 
-## OLD STUFF FROM HERE ON :
+# OLD STUFF FROM HERE ON
 
 ## 3.4 Computing a Less Conservative FRS
 

@@ -44,15 +44,15 @@ end
 z0 = [0;0;0;v_0] ; % (x,y,h,v)
 
 % create the desired trajectory
-t_stop = get_t_stop_from_v(v_des) ;
-[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+t_f = FRS_4.time_scale ;
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
 % put trajectory into FRS frame
-Z_FRS = world_to_FRS(Z_des(1:2,:),zeros(3,1),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
+Z_FRS = world_to_FRS(Z_des(1:2,:),zeros(3,1),FRS_4.initial_x,FRS_4.initial_y,FRS_4.distance_scale) ;
 
 % move the robot
 A.reset(z0)
-A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
+A.move(T_des(end),T_des,U_des,Z_des) ;
 
 
 %% create offsets and distance scales for the FRSes
@@ -88,7 +88,7 @@ plot_2D_msspoly_contour(I_z_8,z,1,'LineWidth',1.5,'Color',0.4*[0.1 1 0.3],...
     'Offset',O8,'Scale',D8)
 
 % plot the desired (braking) trajectory
-plot_path(Z_brk,'b--','LineWidth',1.5)
+plot_path(Z_des,'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -97,5 +97,3 @@ plot(A)
 xlabel('x [m]')
 ylabel('y [m]')
 set(gca,'FontSize',15)
-
-axis([-0.75, 1.75, -1, 0.75])
