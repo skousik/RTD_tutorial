@@ -21,7 +21,7 @@ First, let <img src="/step_3_FRS_computation/tex/ba499640e4485035b2f3a8d8fdd20e4
 
 
 
-as in [Appendix 1.A](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories#appendix-1a-rigid-body-dynamics), where we used the fact that the desired yaw rate <img src="/step_3_FRS_computation/tex/aa90653a26bc63b138fb304972d81589.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> is fixed over <img src="/step_3_FRS_computation/tex/2f118ee06d05f3c2d98361d9c30e38ce.svg?invert_in_darkmode&sanitize=true" align=middle width=11.889314249999991pt height=22.465723500000017pt/> to get rid of the heading dimension <img src="/step_3_FRS_computation/tex/27e556cf3caa0673ac49a8f0de3c73ca.svg?invert_in_darkmode&sanitize=true" align=middle width=8.17352744999999pt height=22.831056599999986pt/>. This model works for _any point_ on the robot and expresses the robot's rigid body motion. The point <img src="/step_3_FRS_computation/tex/5396bb939ac02109c36b48c29f7c9ce1.svg?invert_in_darkmode&sanitize=true" align=middle width=84.78306869999999pt height=24.65753399999998pt/> is the robot's center of mass at the beginning of any desired trajectory (i.e., when <img src="/step_3_FRS_computation/tex/477a717e18587a5e8605780ca167c322.svg?invert_in_darkmode&sanitize=true" align=middle width=36.07293689999999pt height=21.18721440000001pt/>).
+as in [Appendix 1.A](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories#appendix-1a-rigid-body-dynamics), where we used the fact that the desired yaw rate <img src="/step_3_FRS_computation/tex/aa90653a26bc63b138fb304972d81589.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> is fixed over <img src="/step_3_FRS_computation/tex/2f118ee06d05f3c2d98361d9c30e38ce.svg?invert_in_darkmode&sanitize=true" align=middle width=11.889314249999991pt height=22.465723500000017pt/> to get rid of the heading dimension <img src="/step_3_FRS_computation/tex/27e556cf3caa0673ac49a8f0de3c73ca.svg?invert_in_darkmode&sanitize=true" align=middle width=8.17352744999999pt height=22.831056599999986pt/>. This model works for _any point_ on the robot and expresses the robot's rigid body motion. The point <img src="/step_3_FRS_computation/tex/5396bb939ac02109c36b48c29f7c9ce1.svg?invert_in_darkmode&sanitize=true" align=middle width=84.78306869999999pt height=24.65753399999998pt/> is the robot's center of mass at the beginning of any desired trajectory (i.e., when <img src="/step_3_FRS_computation/tex/477a717e18587a5e8605780ca167c322.svg?invert_in_darkmode&sanitize=true" align=middle width=36.07293689999999pt height=21.18721440000001pt/>) in a reference frame _local to the robot_.
 
 Now we can write a definition for <img src="/step_3_FRS_computation/tex/b8bc815b5e9d5177af01fd4d3d3c2f10.svg?invert_in_darkmode&sanitize=true" align=middle width=12.85392569999999pt height=22.465723500000017pt/>. Recall that the tracking error function is denoted <img src="/step_3_FRS_computation/tex/ee06addff870fbf13ba2fc1625c447e4.svg?invert_in_darkmode&sanitize=true" align=middle width=78.01341569999998pt height=26.76175259999998pt/>, and we write it <img src="/step_3_FRS_computation/tex/69a8d98b45d37ba8a111815cbbce31b0.svg?invert_in_darkmode&sanitize=true" align=middle width=82.29823964999999pt height=24.65753399999998pt/> for each of the position states. Let <img src="/step_3_FRS_computation/tex/9ea8a8d8d55375d9e1893a59f2241094.svg?invert_in_darkmode&sanitize=true" align=middle width=137.41609529999997pt height=24.65753399999998pt/> denote arbitrary "disturbance" functions that are _absolutely integrable_:
 <p align="center"><img src="/step_3_FRS_computation/tex/ea725162aae1293f076631e147b7f5cf.svg?invert_in_darkmode&sanitize=true" align=middle width=301.2497631pt height=37.3519608pt/></p>
@@ -176,9 +176,11 @@ The last thing to do is make the trajectory-producing model scaled down for the 
 ```matlab
 % create trajectory-producing model
 scale = (time_scale/distance_scale) ;
-f = scale*[v_des - w_des*(y - initial_y) ;
-                 + w_des*(x - initial_x)] ;
+f = scale*[v_des - distance_scale*w_des*(y - initial_y) ;
+                 + distance_scale*w_des*(x - initial_x)] ;
 ```
+
+Notice that the `distance_scale` is multiplied by `w_des`. This is to ensure that `w_des` is unscaled; in other words, we only want to scale down the position dynamics, not the yaw dynamics. Also, note that `initial_x` and `initial_y` are in the _scaled FRS frame_, not in the unscaled local coordinate frame of the robot.
 
 
 
@@ -278,11 +280,7 @@ I_sol = sol.eval(I) ;
 We want to see that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is greater than or equal to 1 where the trajectory-producing model went _with braking included_. So, let's create the desired trajectory:
 
 ```matlab
-% get the required stopping time
-t_stop = get_t_stop_from_v(v_0) ;
-
-% create the braking trajectory
-[T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 ```
 
 It'll also be nice to see how close the robot gets while tracking this desired trajectory from a variety of initial speeds. Set that up as follows:
@@ -297,7 +295,7 @@ A.reset(z0)
 A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
 ```
 
-Now, we can visualize the output:
+Now, we can visualize the output _in the global coordinate frame_.
 
 ```matlab
 figure(1) ; clf ; axis equal ; hold on ;
@@ -312,7 +310,7 @@ plot_2D_msspoly_contour(I_sol,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
     'Offset',offset,'Scale',distance_scale)
 
 % plot the desired trajectory
-plot_path(Z_brk(1:2,:),'b--','LineWidth',1.5)
+plot_path(Z_des(1:2,:),'b--','LineWidth',1.5)
 
 % plot the agent
 plot(A)
@@ -346,13 +344,13 @@ Let's pick the 0.0 — 0.5 m/s speed range for now. All the code below will work
 
 #### Distance Scale
 
-Code for this in the script `compute_FRS_distance_scale.m`. We'll just discuss results here, since it's pretty similar to how we computed the distance scale above. The distance scale required for each initial speed range is as follows:
+Code for this in the script `step_3_compute_distance_scale.m`. We'll just discuss results here, since it's pretty similar to how we computed the distance scale above. The distance scale required for each initial speed range is as follows:
 
 | Initial Speed Range [m/s] | Distance Scale [m] |
 | ------------------------- | ------------------ |
-| 0.0 — 0.5                 | 0.85               |
-| 0.5 — 1.0                 | 1.35               |
-| 1.0 — 1.5                 | 1.66               |
+| 0.0 — 0.5                 | 0.82               |
+| 0.5 — 1.0                 | 1.34               |
+| 1.0 — 1.5                 | 1.70               |
 
 These are saved in .mat files in `step_3_FRS_computation/data/scaling`.
 
@@ -360,9 +358,7 @@ These are saved in .mat files in `step_3_FRS_computation/data/scaling`.
 
 Code for the FRS computation is in the script `compute_turtlebot_FRS.m`. We'll walk through a simplified version, so you can see what's different from the FRS computation above. This shows how to use the `compute_FRS` function from the RTD repo. This is really similar to the `FRS_computation_example_4.m` script in the [RTD repository](https://github.com/ramvasudevan/RTD).
 
-### Example 2
-
-Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `step_3_ex_2_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
+Let's find the FRS for the 0.0 — 0.5 m/s case. This code is in `step_3_compute_turtlebot_FRS.m`. Before writing any code, let's specify the optimization program we'll use to find the FRS:
 <p align="center"><img src="/step_3_FRS_computation/tex/6cccb1f776b4ad866a04b52ffc8c7c17.svg?invert_in_darkmode&sanitize=true" align=middle width=674.9023577999999pt height=163.99999275pt/></p>
 
 
@@ -377,7 +373,7 @@ Next, we'll set up all the objects required to actually solve this program with 
 
 
 
-#### Example 2.1: Set up Timing and Spaces
+#### Set up Timing and Spaces
 
 First, load the relevant info and pick the SOS polynomial degree:
 
@@ -386,8 +382,8 @@ degree = 4 ; % this will solve super quick
 
 % load timing, error functions, and distance scale
 load('turtlebot_timing.mat')
-load('turtlebot_error_functions_v0_0.0_to_0.5.mat')
-load('turtlebot_FRS_scaling_v0_0.0_to_0.5.mat')
+load('turtlebot_error_functions_v_0_0.0_to_0.5.mat')
+load('turtlebot_FRS_scaling_v_0_0.0_to_0.5.mat')
 ```
 
 We'll also set up the TurtleBot agent to get its footprint:
@@ -424,7 +420,7 @@ h_K = (k - K_range(:,1)).*(K_range(:,2) - k) ;
 
 
 
-#### Example 2.2: Set up the Dynamics
+#### Set up the Dynamics
 
 Notice that <img src="/step_3_FRS_computation/tex/5537cda6dac51f6d1e672a0f75f3746e.svg?invert_in_darkmode&sanitize=true" align=middle width=89.26936094999998pt height=26.76175259999998pt/>; in other words, we are letting <img src="/step_3_FRS_computation/tex/aa90653a26bc63b138fb304972d81589.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> and <img src="/step_3_FRS_computation/tex/a8ebf8c468236800b8ed78d42ddbfa57.svg?invert_in_darkmode&sanitize=true" align=middle width=15.11042279999999pt height=22.831056599999986pt/> vary between -1 and 1. But our desired yaw rate and speed aren't always between -1 and 1, so, we have to write them in terms of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. The yaw rate is pretty easy:
 
@@ -435,7 +431,7 @@ w_des = w_max*k(1) ;
 The speed is a little bit more complex. Recall that we picked 0.25 m/s as `delta_v` when computing the [tracking error functions](https://github.com/skousik/RTD_tutorial/tree/master/step_2_error_function). This value gives our maximum allowable change in the commanded speed versus the current speed. So, first, we'll establish a range of allowable <img src="/step_3_FRS_computation/tex/6c4adbc36120d62b98deef2a20d5d303.svg?invert_in_darkmode&sanitize=true" align=middle width=8.55786029999999pt height=14.15524440000002pt/> that we can command:
 
 ```
-v_range = [v0_min - delta_v, v0_max + delta_v] ;
+v_range = [v_0_min - delta_v, v_0_max + delta_v] ;
 v_range = bound_values(v_range,[0, max_speed]) ;
 ```
 
@@ -448,17 +444,16 @@ v_des = (diff(v_range)/2)*k(2) + mean(v_range) ;
 Now, we can write our dynamics in terms of our commanded <img src="/step_3_FRS_computation/tex/ae4fb5973f393577570881fc24fc2054.svg?invert_in_darkmode&sanitize=true" align=middle width=10.82192594999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6c4adbc36120d62b98deef2a20d5d303.svg?invert_in_darkmode&sanitize=true" align=middle width=8.55786029999999pt height=14.15524440000002pt/>:
 
 ```matlab
-% create dynamics
 scale = (time_scale/distance_scale) ;
-f = scale*[v_des - w_des*(y - initial_y) ;
-                 + w_des*(x - initial_x)] ;
+f = scale*[v_des - distance_scale*w_des*(y - initial_y) ;
+                 + distance_scale*w_des*(x - initial_x)] ;
 ```
 
-Notice that these dynamics are now nonlinear with respect to our indeterminates! They are polynomials in <img src="/step_3_FRS_computation/tex/f93ce33e511096ed626b4719d50f17d2.svg?invert_in_darkmode&sanitize=true" align=middle width=8.367621899999993pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>.
+Notice that these dynamics are nonlinear with respect to our indeterminates. They are polynomials in <img src="/step_3_FRS_computation/tex/f93ce33e511096ed626b4719d50f17d2.svg?invert_in_darkmode&sanitize=true" align=middle width=8.367621899999993pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>.
 
 
 
-#### Example 2.3: Set up the Tracking Error Function
+#### Set up the Tracking Error Function
 
 Next, we have to define <img src="/step_3_FRS_computation/tex/af543e4935b79ac4b4967e46a594d4c2.svg?invert_in_darkmode&sanitize=true" align=middle width=82.29823964999999pt height=24.65753399999998pt/>. First, let's get <img src="/step_3_FRS_computation/tex/08926724d3ef194857807025173aaf91.svg?invert_in_darkmode&sanitize=true" align=middle width=15.29495549999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6b6744ce28bcf96f11b21c52f6c47c2f.svg?invert_in_darkmode&sanitize=true" align=middle width=14.92018934999999pt height=14.15524440000002pt/>. Recall that they are both degree 3 polynomials of time, so we'll first create monomials <img src="/step_3_FRS_computation/tex/c56e4e18ef488354b6ab1f706c305395.svg?invert_in_darkmode&sanitize=true" align=middle width=61.872158699999986pt height=26.76175259999998pt/>:
 
@@ -488,7 +483,7 @@ Note that all this is done in a slightly more automated way in the example scrip
 
 
 
-#### Example 2.4: Creating the SOS Problem Structure
+#### Creating the SOS Problem Structure
 
 To use `compute_FRS`, we need to pass in the entire FRS SOS problem as a structure. First, we need to create the cost function, which integrates <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> over the domain <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. We created `Z_range` and `K_range` earlier to make this a bit easier:
 
@@ -513,7 +508,7 @@ solver_input_problem.degree = degree ;
 
 
 
-#### Example 2.5: Running the SOS Program
+#### Running the SOS Program
 
 After all that setup, it's actually pretty easy to run the SOS program to compute the FRS:
 
@@ -525,86 +520,89 @@ You should see MOSEK solve the program. For degree 4, the solve time is 3.3 s wi
 
 
 
-#### Example 2.6: Results
+## Visualizing the FRS
 
-Now we can visualize the results! First, let's extract the program output:
+Now we can visualize the results! This code is all in `step_3_ex_2_visualize_turtlebot_FRS.m`.
 
-```matlab
-I = solver_output.indicator_function ;
-```
+### Example 2
 
-Next, let's pick a single <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/> to visualize. The value <img src="/step_3_FRS_computation/tex/7b63da949be9d2393bf375c0198e5434.svg?invert_in_darkmode&sanitize=true" align=middle width=80.30816144999999pt height=24.65753399999998pt/> corresponds to driving straight at the maximum speed in `v_range`, which should be 0.75 m/s, while turning to the left at 0.5 rad/s:
+First, let's pick an initial speed for the robot, and a <img src="/step_3_FRS_computation/tex/ae4fb5973f393577570881fc24fc2054.svg?invert_in_darkmode&sanitize=true" align=middle width=10.82192594999999pt height=14.15524440000002pt/> and <img src="/step_3_FRS_computation/tex/6c4adbc36120d62b98deef2a20d5d303.svg?invert_in_darkmode&sanitize=true" align=middle width=8.55786029999999pt height=14.15524440000002pt/> values to visualize:
 
 ```matlab
-k_eval = [0.5 ; 1] ;
+% initial speed
+v_0 = 1.0 ; % m/s
+
+% yaw rate and speed
+w_des = 1.0 ; % rad/s
+v_des = 1.2 ; % m/s
 ```
 
-Recall that <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> is a polynomial on <img src="/step_3_FRS_computation/tex/3d5c283292be654057af73820d289beb.svg?invert_in_darkmode&sanitize=true" align=middle width=47.62546634999999pt height=22.465723500000017pt/>. Evaluate <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> on this <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to get <img src="/step_3_FRS_computation/tex/c6c6cc9e4e541ca2e6b59518ff32294c.svg?invert_in_darkmode&sanitize=true" align=middle width=13.97840729999999pt height=22.465723500000017pt/>, a polynomial just on <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/>:
+Let's load our timing info and an FRS:
 
 ```matlab
-I_z = msubs(I,k,k_eval) ;
+% load timing
+load('turtlebot_timing.mat')
+
+% load the right FRS
+degree = 4 ;
+FRS = get_FRS_from_v_0(v_0,degree) ;
 ```
 
-Let's also see what happens when we track this <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. First, we need to convert it to a yaw rate and speed command:
-
-```
-w_in = full(msubs(w_des,k,k_eval)) ;
-v_in = full(msubs(v_des,k,k_eval)) ;
-```
-
-Now, set up and move the TurtleBot:
+Make the desired trajectory for our choice of `w_des` and `v_des`:
 
 ```matlab
-% create the initial condition
-z0 = [0;0;0;initial_speed] ; % (x,y,h,v)
-
 % create the desired trajectory
-t_stop = get_t_stop_from_v(initial_speed) ;
-[T,U,Z] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_in,v_in) ;
+t_f = FRS.time_scale ;
+[T_des,U_des,Z_des] = make_turtlebot_desired_trajectory(t_f,w_des,v_des) ;
 
-% move the robot
-A.reset(z0)
-A.move(T(end),T,U,Z) ;
+% put trajectory into FRS frame
+Z_FRS = world_to_FRS(Z_des(1:2,:),zeros(3,1),FRS.initial_x,FRS.initial_y,FRS.distance_scale) ;
 ```
 
-Finally, plot the subset of the FRS in <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> corresponding to this choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>:
+Get the <img src="/step_3_FRS_computation/tex/3bf25d9d50c08c7ec96446a7abb1c024.svg?invert_in_darkmode&sanitize=true" align=middle width=44.30350649999999pt height=22.831056599999986pt/> to evaluate our FRS polynomial on, given the `w_des` and `v_des` values we picked.
 
 ```matlab
-figure(1) ; clf ; axis equal ; hold on ;
-
-% plot the initial condition
-offset = -distance_scale*[initial_x;initial_y] ;
-plot_2D_msspoly_contour(h_Z0,z,0,'LineWidth',1.5,'Color','b',...
-    'Offset',offset,'Scale',distance_scale)
-
-% plot the FRS
-plot_2D_msspoly_contour(I_z,z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3],...
-    'Offset',offset,'Scale',distance_scale)
-
-% plot the desired trajectory
-plot(Z(1,:),Z(2,:),'b--','LineWidth',1.5)
-
-% plot the agent
-plot(A)
+k_eval = [w_des / FRS.w_max ;
+          (2/diff(FRS.v_range)).*(v_des - mean(FRS.v_range)) ] ;
 ```
 
-You should see something like this:
+Get the FRS polynomial <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/>, then evaluate <img src="/step_3_FRS_computation/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> on this <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/> to get <img src="/step_3_FRS_computation/tex/c6c6cc9e4e541ca2e6b59518ff32294c.svg?invert_in_darkmode&sanitize=true" align=middle width=13.97840729999999pt height=22.465723500000017pt/>, a polynomial just on <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/>:
+
+```matlab
+I = FRS.FRS_polynomial ;
+I_z = msubs(I,FRS.k,k_eval) ;
+```
+
+Finally, plot the subset of the FRS in <img src="/step_3_FRS_computation/tex/5b51bd2e6f329245d425b8002d7cf942.svg?invert_in_darkmode&sanitize=true" align=middle width=12.397274999999992pt height=22.465723500000017pt/> corresponding to this choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. This is in the FRS frame.
+
+```matlab
+% plot initial condition
+plot_2D_msspoly_contour(FRS.h_Z0,FRS.z,0,'LineWidth',1.5,'Color','b')
+
+% plot FRS subset for given k
+plot_2D_msspoly_contour(I_z,FRS.z,1,'LineWidth',1.5,'Color',[0.1 0.8 0.3])
+
+% plot desired trajectory
+plot_path(Z_FRS,'b--','LineWidth',1.5)
+```
+
+In the example code, we also plot the robot and FRS in the world frame, resulting in the following output:
 
 <img src="images/step_3_ex_2_img_1.png" width="600px"/>
 
+As before, the green contour is the level set of the FRS, given our choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. The blue circle is the robot's initial condition. The blue dashed line is the desired trajectory. The robot is the filled blue circle with an arrow in it.
 
+Notice that the FRS is pretty conservative -- it definitely includes more than 3 cm of buffer distance around the robot, (which we expect given our tracking error function). However, we can reduce the conservatism by increasing the degree.
 
-As before, the green contour is the level set of the FRS, given our choice of <img src="/step_3_FRS_computation/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. The blue circle at the origin is the robot's initial condition. The blue dashed line is the desired trajectory. The robot is the blue circle with an arrow in it.
-
-Notice that the FRS is pretty conservative -- it definitely includes more than 3 cm of buffer distance around the robot, as we would expect given our tracking error function. However, we can reduce the conservatism by increasing the degree.
+## OLD STUFF FROM HERE ON :
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we have computed the FRS at degree 10 for you. This just required changing the `degree` variable to 10 in `compute_turtlebot_FRS.m`.
+To conclude this section, we have computed the FRS at degrees 8 and 10 for you. This just requires changing the `degree` variable to 10 in `step_3_compute_turtlebot_FRS.m`.
 
-This computation took 1.6 hrs per initial speed range on a server with many many 2.8 GHz cores. It also used tens of gigabytes of RAM, so probably don't try it on a laptop, especially when including <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>.
+This computation took 1.6 hrs per initial speed range on a beefy computer with many many 2.8 GHz cores. It also used tens of gigabytes of RAM, so probably don't try it on a laptop, especially when including <img src="/step_3_FRS_computation/tex/3cf4fbd05970446973fc3d9fa3fe3c41.svg?invert_in_darkmode&sanitize=true" align=middle width=8.430376349999989pt height=14.15524440000002pt/>.
 
-You'll find the degree 4, 6, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+You'll find the degree 4, 6, 8, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
 
 ### Example 3
 
