@@ -1,4 +1,4 @@
-**TL;DR**: Run the script `run_turtlebot_simulation.m`.
+**TL;DR**: Run the script `step_4_run_turtlebot_simulation.m`.
 
 # Step 4: Online Planning
 
@@ -6,9 +6,9 @@
 
 Note that there is an example in the [RTD repository](https://github.com/ramvasudevan/RTD) for a Segway robot, which is really similar to the TurtleBot. Also, make sure you have the latest [RTD](https://github.com/ramvasudevan/RTD) and [simulator](https://github.com/skousik/simulator) repositories so that all the functions in this step work.
 
-## 4.1 Summary
+## Summary
 
-In this step, we use the FRS computed in the [previous step](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) to plan trajectories for the TurtleBot online (i.e., at runtime). First, we take the entire FRS and "intersect" it with obstacles around the robot. This intersection results in all trajectory parameters that would cause a collision. Finally, we optimize over the remaining collision-free trajectory parameters. If none can be found, then we execute the fail-safe maneuver from the previous planning iteration.
+In this step, we use the FRS computed in the [previous step](https://github.com/skousik/RTD_tutorial/tree/master/step_3_FRS_computation) to plan trajectories for the TurtleBot online (i.e., at runtime). First, we take the entire FRS and "intersect" it with obstacles around the robot. This intersection results in all trajectory parameters that may cause a collision. Finally, we optimize over the remaining collision-free trajectory parameters. If none can be found, then we execute the fail-safe maneuver from the previous planning iteration.
 
 ### Mathy Overview
 
@@ -37,22 +37,22 @@ To do online planning, we'll do the following:
 
 
 
-## 4.2 Mapping Obstacles to Trajectory Parameters
+## 4.1 Mapping Obstacles to Trajectory Parameters
 
-In this part, we will represent an obstacle in the trajectory parameter space. First, let's assume that obstacles are sensed and handed to us as **polygons**, which is reasonable for a sensor like a LIDAR. Then, we can use the discretization mentioned above in the mathy overview.
+In this part, we will represent an obstacle in the trajectory parameter space. First, let's assume that obstacles are sensed and handed to us as **polygons**, which is reasonable for a sensor like a planar LIDAR. Then, we can use the discretization mentioned above in the mathy overview.
 
-The important points of the discretization are as follows. First, we only need to discretize the obstacle's boundary, since we can't get into the obstacle without passing through the boundary. Second, we have to buffer the obstacle before discretizing, to compensate for the fact that our robot shouldn't pass between any two points of the discretized boundary. Third, we need to find a **point spacing**, denoted <img src="/step_4_online_planning/tex/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode&sanitize=true" align=middle width=7.87295519999999pt height=14.15524440000002pt/>, that tells us how finely to discretize the boundary. In other words, we want to make sure that the discrete points are spaced no farther than <img src="/step_4_online_planning/tex/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode&sanitize=true" align=middle width=7.87295519999999pt height=14.15524440000002pt/> apart along the boundary.
+The important points of the discretization are as follows. First, we only need to discretize the obstacle's boundary, since we can't get into the obstacle without passing through the boundary. Second, we have to buffer the obstacle before discretizing, to compensate for the fact that our robot shouldn't pass between any two points of the discretized boundary. Third, we need to find a **point spacing**, <img src="/step_4_online_planning/tex/ac4347acd383a6b21d3794b0b621326e.svg?invert_in_darkmode&sanitize=true" align=middle width=38.009795999999994pt height=21.18721440000001pt/>, that tells us how finely to discretize the boundary. In other words, we want to make sure that the discrete points are spaced no farther than <img src="/step_4_online_planning/tex/89f2e0d2d24bcf44db73aab8fc03252c.svg?invert_in_darkmode&sanitize=true" align=middle width=7.87295519999999pt height=14.15524440000002pt/> apart along the boundary.
 
-The code we'll go over here is all in `example_9_map_obs_to_traj_params.m`. We'll just cover the highlights.
+The code we'll go over here is all in `step_4_ex_1_map_obs_to_traj_params.m`. We'll just cover the highlights.
 
-### Example 9
+### Example 1
 
 In this example, we'll make a single polygonal obstacle in front of the robot, then map it to the parameter space using the FRS polynomial <img src="/step_4_online_planning/tex/21fd4e8eecd6bdf1a4d3d6bd1fb8d733.svg?invert_in_darkmode&sanitize=true" align=middle width=8.515988249999989pt height=22.465723500000017pt/> that acts like an indicator function on the FRS.
 
-First, load the FRS and create a TurtleBot. We'll use the 0.0 — 0.5 m/s FRS as in Step 3.
+First, load the FRS and create a TurtleBot. We'll use the 0.0 — 0.5 m/s FRS from Step 3.
 
 ```matlab
-FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+FRS = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
 A = turtlebot_agent ;
 ```
 
@@ -65,7 +65,9 @@ N_vertices = 5 ;
 O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
 ```
 
-#### Example 9.1: Obstacle Buffering and Discretization
+
+
+#### Example 1.1: Obstacle Buffering and Discretization
 
 The polyline `O` represents the obstacle as a polygon. To discretize it, we first need to buffer it:
 
@@ -104,9 +106,9 @@ plot(O_pts(1,:),O_pts(2,:),'.','Color',[0.5 0.1 0.1],'MarkerSize',15) % discreti
 
 You should see something like this (of course, your obstacle will be a different shape and size):
 
-<img src="images/image_1_for_example_9.png" width="400px"/>
+<img src="images/step_4_ex_1_img_1.png" width="400px"/>
 
-#### Example 9.2: Mapping Obstacle to FRS Frame
+#### Example 1.2: Mapping Obstacle to FRS Frame
 
 Recall that the FRS is computed in a scaled and shfited coordinate frame, to make sure all the trajectories stay within the <img src="/step_4_online_planning/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> box. This was necessary because we computed things with polynomials that blow up to large numbers when evaluated on things greater than 1.
 
@@ -132,7 +134,7 @@ O_FRS = crop_points_outside_region(0,0,O_FRS,1) ;
 
 
 
-#### Example 9.3: Map Discretized Obstacle to Trajectory Parameters
+#### Example 1.3: Map Discretized Obstacle to Trajectory Parameters
 
 Now that we have our discretized obstacle, we can map it to the trajectory parameter space:
 
@@ -153,19 +155,19 @@ I_k = msubs(I,z,O_FRS) ;
 
 The variable `I_k` is a list of polynomials in <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>. For each of these polynomials, the 1-superlevel set contains all the trajectory parameters that could cause the TurtleBot to reach one of the discretized obstacle points. The nice part is that we can now use these `I_k` polynomials as constraints in a nonlinear optimization program over the trajectory parameters.
 
-If you run `example_9_map_obs_to_traj_params.m`, you'll see a plot like the following:
+If you run `step_4_ex_1_map_obs_to_traj_params.m`, you'll see a plot like the following:
 
-<img src="images/image_2_for_example_9.png" width="700px"/>
+<img src="images/step_4_ex_1_img_2.png" width="700px"/>
 
 
 
 Notice that there are artifacts near the boundaries of the <img src="/step_4_online_planning/tex/ad2444f8273c6541c5dc1fc5b6445401.svg?invert_in_darkmode&sanitize=true" align=middle width=52.21473014999999pt height=26.76175259999998pt/> box where the FRS polynomial starts to blow up in the middle subplot. We can get rid of those later on by ignoring the corners of the box, since those are definitely not reachable by the robot.
 
-## 4.3 Trajectory Optimization
+## 4.2 Trajectory Optimization
 
 Now we'll solve the online trajectory optimization problem for a single planning iteration. Much of this is the same as Example 9 above. The code is in `example_10_trajectory_optimization.m`.
 
-### Example 10
+### Example 2
 
 This example turns much of the previous example into functions, then calls MATLAB's generic nonlinear optimization tool, `fmincon`, to solve the following problem:
 <p align="center"><img src="/step_4_online_planning/tex/4707fcdfb70730be9ebd54bddaa0149f.svg?invert_in_darkmode&sanitize=true" align=middle width=442.29279929999996pt height=46.68803205pt/></p>
@@ -176,13 +178,13 @@ The point <img src="/step_4_online_planning/tex/8b4f2d3e1de4d24f0d8d4b38af75c90b
 
 
 
-### Example 10.1: Setup
+#### Example 2.1: Setup
 
-First create the robot and load the 0.0 — 0.5 m/s FRS:
+First create the robot and load the 0.5 — 1.0 m/s FRS:
 
 ```matlab
-initial_speed = 0.49 ; % m/s
-FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+initial_speed = 0.5 ; % m/s
+FRS = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
 
 A = turtlebot_agent ;
 z_initial = [0;0;0] ; % initial (x,y,h)
@@ -199,7 +201,7 @@ y_des = 0.5 ;
 Also create an obstacle:
 
 ```matlab
-obstacle_location = [1.1 ; 0] ; % (x,y)
+obstacle_location = [1 ; 0] ; % (x,y)
 obstacle_scale = 1.0 ;
 N_vertices = 5 ;
 obstacle_buffer = 0.05 ; % m
@@ -208,7 +210,7 @@ O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
 
 
 
-### Example 10.2: Creating a Cost Function
+#### Example 2.2: Creating a Cost Function
 
 We denote the cost function <img src="/step_4_online_planning/tex/4e0a330da614750eb556c58093edd4ae.svg?invert_in_darkmode&sanitize=true" align=middle width=179.73945329999998pt height=24.65753399999998pt/> . To get the point <img src="/step_4_online_planning/tex/297f41396e8158f6a9169cfb6d6d00a5.svg?invert_in_darkmode&sanitize=true" align=middle width=48.510364649999985pt height=24.65753399999998pt/> for any <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>, we precompute the endpoint parameterized by <img src="/step_4_online_planning/tex/63bb9849783d01d91403bc9a5fea12a2.svg?invert_in_darkmode&sanitize=true" align=middle width=9.075367949999992pt height=22.831056599999986pt/>, then plug it into a cost. This is done in the script `create_turtlebot_cost_function.m`, which also computes gradients of the cost function. This script produces two functions, named `turtlebot_cost` and `turtlebot_cost_grad`.
 
@@ -236,7 +238,7 @@ We pass this to `fmincon` in the example script as follows (run these lines):
 z_goal = [x_des; y_des] ;
 
 % transform waypoint to robot's local coordinates
-z_goal_local = world_to_local(z_goal,A.state(:,end),0,0,1) ;
+z_goal_local = world_to_local(A.state(:,end),z_goal) ;
 
 % use waypoint to make cost function
 cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
@@ -244,7 +246,7 @@ cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
 
 
 
-### Example 10.3: Creating the Constraints
+#### Example 2.3: Creating the Constraints
 
 Now we'll do the same obstacle discretization and evaluation of the FRS polynomial as in Example 9 above. Here, we've wrapped up much of the code into handy-dandy functions. First, discretize the obstacle:
 
@@ -311,7 +313,7 @@ k_bounds = [k_1_bounds ; k_2_bounds] ;
 
 
 
-### Example 10.4: Trajectory Optimization
+#### Example 2.4: Trajectory Optimization
 
 Now we can call `fmincon`! Note that we've chosen these options to help `fmincon` solve faster. You can read more about these [here](https://www.mathworks.com/help/optim/ug/fmincon.html).
 
@@ -320,7 +322,7 @@ Now we can call `fmincon`! Note that we've chosen these options to help `fmincon
 initial_guess = zeros(2,1) ;
 
 % create optimization options
-options =  optimoptions('fmincon' 'MaxFunctionEvaluations',1e5,'MaxIterations',1e5,...
+options =  optimoptions('fmincon','MaxFunctionEvaluations',1e5,'MaxIterations',1e5,...
                 'OptimalityTolerance',1e-3','CheckGradients',false,...
                 'FiniteDifferenceType','central','Diagnostics','off',...
                 'SpecifyConstraintGradient',true,...
@@ -344,11 +346,13 @@ end
 
 Depending on the random obstacle, the problem will either be feasible or not. In the case that it is, we can now use all the plotting stuff from Example 9 and see what things look like. You'll see something like this:
 
-<img src="images/image_for_example_10.png" width="700px"/>
+<img src="images/step_4_ex_2_img_1.png" width="700px"/>
 
 Now that we can do a single planning iteration, we can wrap everything up to run in the loop for online planning.
 
-## 4.4 Running a Simulation
+
+
+## 4.3 Running a Simulation
 
 You can run a simulation with `run_turtlebot_simulation.m`. We'll briefly walk through the code here. More details on the simulator framework are in the tutorial [extras](https://github.com/skousik/RTD_tutorial/tree/master/step_5_extras/extra_2_writing_an_RTD_planner).
 
