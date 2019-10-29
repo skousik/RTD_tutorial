@@ -29,9 +29,9 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
         
         function load_FRS_files(P,~,~)
             FRS_data = cell(1,3) ;
-            FRS_data{1} = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
-            FRS_data{2} = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
-            FRS_data{3} = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
+            FRS_data{1} = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
+            FRS_data{2} = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+            FRS_data{3} = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
             P.FRS = FRS_data ;
         end
         
@@ -125,7 +125,7 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             
             % rotate waypoint to body-fixed frame
             z_goal = P.current_waypoint ;
-            z_goal_local = world_to_local(z(1:3),z_goal(1:2),0,0,1) ;
+            z_goal_local = world_to_local(z(1:3),z_goal(1:2)) ;
             
             % create cost function
             FRS_cur = P.FRS{P.current_FRS_index} ;
@@ -198,8 +198,9 @@ classdef turtlebot_RTD_planner_static_subclass < generic_RTD_planner
             v_des = full(msubs(FRS_cur.v_des,k,k_opt)) ;
 
             % create the desired trajectory
+            t_stop = get_t_stop_from_v(v_des) ;
             [T_out,U_out,Z_out] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
-                                    FRS_cur.t_f,FRS_cur.t_stop,w_des,v_des) ;
+                                    t_stop,w_des,v_des) ;
         end
         
         %% plotting

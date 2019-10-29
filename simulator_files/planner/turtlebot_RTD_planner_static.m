@@ -63,9 +63,9 @@ classdef turtlebot_RTD_planner_static < planner
             
             % load FRS files
             FRS_data = cell(1,3) ;
-            FRS_data{1} = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
-            FRS_data{2} = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
-            FRS_data{3} = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
+            FRS_data{1} = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
+            FRS_data{2} = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+            FRS_data{3} = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
             P.FRS = FRS_data ;
         end
         
@@ -200,7 +200,7 @@ classdef turtlebot_RTD_planner_static < planner
             P.current_waypoint = z_goal ;
             
             % put waypoint into FRS frame to use for planning
-            z_goal_local = world_to_local(agent_state(1:3),z_goal(1:2),0,0,1) ;
+            z_goal_local = world_to_local(agent_state(1:3),z_goal(1:2)) ;
             
             % create cost function
             cost = @(k) turtlebot_cost_for_fmincon(k,...

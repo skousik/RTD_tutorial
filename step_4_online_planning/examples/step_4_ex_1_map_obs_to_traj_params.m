@@ -4,7 +4,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 29 May 2019
-% Updated: 20 May 2019
+% Updated: 29 Oct 2019
 %
 %% user parameters
 obstacle_location = [1 ; 0] ; % (x,y)
@@ -14,7 +14,7 @@ obstacle_buffer = 0.05 ; % m
 
 %% automated from here
 % load FRS
-FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+FRS = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
 
 % create turtlebot
 A = turtlebot_agent ;
@@ -70,18 +70,24 @@ I_k = msubs(I,z,O_FRS) ;
 
 %% find a collision-free parameter
 tic
+
+% generate grid of k values
 k_vec = linspace(-1,1) ;
 [K1,K2] = meshgrid(k_vec,k_vec) ;
 K_vals = [K1(:), K2(:)]' ;
 
+% check each k value in the grid for collision with each of the obstacle
+% points
 K_log = true(1,length(K_vals)) ;
 for idx = 1:length(I_k)
     I_log = msubs(I_k(idx),k,K_vals) ;
     K_log = K_log & (I_log < 1) ;
 end
 
+% eliminate the unsafe k values
 K_vals = K_vals(:,K_log) ;
 
+% pick a random feasible k value from the remaining set
 if ~isempty(K_vals)
     disp('Feasible trajectory found!')
     k_test_idx = round(rand_range(1,size(K_vals,2))) ;
@@ -90,6 +96,7 @@ else
     disp('No feasible trajectories available!')
     k_test = [] ;
 end
+
 toc
 
 %% get contour of collision-free parameter in K and Z
@@ -99,7 +106,7 @@ if ~isempty(k_test)
     C_world = FRS_to_world(C_FRS,A.state(:,end),x0,y0,D) ;
 end
 
-%% plot actual xy space
+%% plot world frame
 figure(1) ; clf ;
 
 subplot(1,3,3) ; hold on ; axis equal ; set(gca,'FontSize',15)
@@ -122,8 +129,10 @@ if ~isempty(k_test)
     plot(C_world(1,:),C_world(2,:),'Color',[0.3 0.8 0.5],'LineWidth',1.5)
 end
 
+axis([-0.5 1.5 -1 1])
+
 % labeling
-title('Global Frame')
+title('World Frame')
 xlabel('x [m]')
 ylabel('y [m]')
 

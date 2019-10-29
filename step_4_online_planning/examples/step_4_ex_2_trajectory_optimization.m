@@ -5,18 +5,18 @@
 %
 % Author: Shreyas Kousik
 % Created: 30 May 2019
-% Updated: 6 June 2019
+% Updated: 29 Oct 2019
 %
 %% user parameters
 % robot initial condition (note that x, y, and h are 0 for this example)
-initial_speed = 0.49 ; % m/s
+v_0 = 0.5 ; % m/s
 
 % robot desired location
 x_des = 0.75 ;
 y_des = 0.5 ;
 
 % obstacle
-obstacle_location = [1.1 ; 0] ; % (x,y)
+obstacle_location = [1 ; 0] ; % (x,y)
 obstacle_scale = 1.0 ;
 N_vertices = 5 ;
 obstacle_buffer = 0.05 ; % m
@@ -24,12 +24,12 @@ obstacle_buffer = 0.05 ; % m
 %% automated from here
 % load FRS
 disp('Loading fastest feasible FRS')
-if initial_speed >= 1.0 && initial_speed <= 1.5
-    FRS = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
-elseif initial_speed >= 0.5
-    FRS = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
-elseif initial_speed >= 0.0
-    FRS = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
+if v_0 >= 1.0 && v_0 <= 1.5
+    FRS = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
+elseif v_0 >= 0.5
+    FRS = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+elseif v_0 >= 0.0
+    FRS = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
 else
     error('Please pick an initial speed between 0.0 and 1.5 m/s')
 end
@@ -37,7 +37,7 @@ end
 % create turtlebot
 A = turtlebot_agent ;
 z_initial = [0;0;0] ; % initial (x,y,h)
-A.reset([0;0;0;initial_speed])
+A.reset([0;0;0;v_0])
 
 % create obstacle
 O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
@@ -47,7 +47,7 @@ O = make_random_polygon(N_vertices,obstacle_location,obstacle_scale) ;
 z_goal = [x_des; y_des] ;
 
 % transform waypoint to FRS coordinates
-z_goal_local = world_to_local(A.state(:,end),z_goal,0,0,1) ;
+z_goal_local = world_to_local(A.state(:,end),z_goal) ;
 
 % use waypoint to make cost function
 cost = @(k) turtlebot_cost_for_fmincon(k,FRS,z_goal_local) ;
@@ -84,7 +84,7 @@ nonlcon = @(k) turtlebot_nonlcon_for_fmincon(k,cons_poly,cons_poly_grad) ;
 k_1_bounds = [-1,1] ;
 
 % create bounds for speed
-v_0 = initial_speed ;
+v_0 = v_0 ;
 v_max = FRS.v_range(2) ;
 v_des_lo = max(v_0 - FRS.delta_v, FRS.v_range(1)) ;
 v_des_hi = min(v_0 + FRS.delta_v, FRS.v_range(2)) ;
@@ -146,10 +146,9 @@ if ~isempty(k_opt)
     v_des = full(msubs(FRS.v_des,k,k_opt)) ;
 
     % create the desired trajectory
-    [T_go,U_go,Z_go] = make_turtlebot_desired_trajectory(FRS.t_f,w_des,v_des) ;
-
-    % create the braking trajectory
-    [T_brk,U_brk,Z_brk] = convert_turtlebot_desired_to_braking_traj(FRS.t_plan,FRS.t_stop,T_go,U_go,Z_go) ;
+    t_plan = FRS.t_plan ;
+    t_stop = v_des / A.max_accel ;
+    [T_brk,U_brk,Z_brk] = make_turtlebot_braking_trajectory(t_plan,t_stop,w_des,v_des) ;
     
     % move the robot
     A.move(T_brk(end),T_brk,U_brk,Z_brk) ;
@@ -177,7 +176,7 @@ plot(x_des,y_des,'k*','LineWidth',2,'MarkerSize',15)
 
 % plot test value of k and desired trajectory
 if ~isempty(k_opt)
-    plot(Z_go(1,:),Z_go(2,:),'b--','LineWidth',1.5)
+    plot_path(Z_brk,'b--','LineWidth',1.5)
     I_z_test = msubs(FRS_msspoly,k,k_opt) ;
     plot(C_world(1,:),C_world(2,:),'Color',[0.3 0.8 0.5],'LineWidth',1.5)
 end
@@ -186,7 +185,7 @@ end
 axis([-0.5,1.5,-1,1])
 
 % labeling
-title('Global Frame')
+title('World Frame')
 xlabel('x [m]')
 ylabel('y [m]')
 
