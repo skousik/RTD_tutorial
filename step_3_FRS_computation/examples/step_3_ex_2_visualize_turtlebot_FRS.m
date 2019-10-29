@@ -9,14 +9,14 @@
 clear ; clc ; close all
 %% user parameters
 % initial speed
-v_0 = 1.0 ; % m/s
+v_0 = 1.25 ; % m/s
 
 % yaw rate and speed
-w_des = 1.0 ; % rad/s
-v_des = 1.2 ; % m/s
+w_des = 0.4 ; % rad/s
+v_des = 1.25 ; % m/s
 
-% degree FRS to visualize
-degree = 4 ;
+% degree FRS to visualize (pick 4, 6, 8, or 10)
+degree = 6 ;
 
 %% automated from here
 % load timing

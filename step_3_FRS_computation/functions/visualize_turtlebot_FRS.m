@@ -3,12 +3,13 @@ function visualize_turtlebot_FRS(FRS_info,k_eval,use_FRS_scaling)
 %
 % Visualize the FRS contained in FRS_info by plotting the contour for the
 % input k_eval. If the input use_FRS_scaling is omitted or true, then the
-% FRS is plotted in its scaled and shifted coordinates. Otherwise, the
+% FRS is plotted in its scaled and shifted FRS frame. Otherwise, the
 % scaling and shifting is undone, and the FRS is plotted with the initial
 % condition at the origin.
 %
 % Author: Shreyas Kousik
-% Date: 20 May 2019
+% Created: 20 May 2019
+% Updated: 28 Oct 2019
 
     % parse inputs
     if nargin < 3
