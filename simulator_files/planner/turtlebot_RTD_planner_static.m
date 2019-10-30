@@ -29,6 +29,7 @@ classdef turtlebot_RTD_planner_static < planner
     % RTD-specific properties
         % FRS handling
         FRS % this is a cell array of loaded info from FRS .mat files
+        FRS_degree = 10 ; % set to 4, 6, 8, 10, or 12
         FRS_polynomial_structure
         
         % obstacle handling
@@ -44,6 +45,7 @@ classdef turtlebot_RTD_planner_static < planner
         % plotting
         plot_obstacles_flag = true ;
         plot_FRS_flag = false ;
+        plot_HLP_flag = false ;
     end
     
     %% methods
@@ -68,9 +70,9 @@ classdef turtlebot_RTD_planner_static < planner
             
             % load FRS files
             FRS_data = cell(1,3) ;
-            FRS_data{1} = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
-            FRS_data{2} = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
-            FRS_data{3} = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
+            FRS_data{1} = get_FRS_from_v_0(0.0,P.FRS_degree) ;
+            FRS_data{2} = get_FRS_from_v_0(0.5,P.FRS_degree) ;
+            FRS_data{3} = get_FRS_from_v_0(1.0,P.FRS_degree) ;
             P.FRS = FRS_data ;
         end
         
@@ -324,7 +326,7 @@ classdef turtlebot_RTD_planner_static < planner
             % if fmincon was unsuccessful, try to continue executing the
             % previous plan
                 P.vdisp('Continuing previous plan!',5)
-                k_opt = nan(2,1)  % dummy k_opt to fill in info struct
+                k_opt = nan(2,1) ; % dummy k_opt to fill in info struct
                 
                 % first, check if there is enough of the past plan left to
                 % keep executing
@@ -428,7 +430,7 @@ classdef turtlebot_RTD_planner_static < planner
             
             % plot current waypoint
             if P.plot_waypoints_flag && info_idx_check
-                wp = I.waypoint{info_idx} ;
+                wp = I.waypoint(:,info_idx) ;
                 if isempty(wp)
                     wp = nan(2,1) ;
                 end
@@ -490,6 +492,11 @@ classdef turtlebot_RTD_planner_static < planner
                         end
                     end
                 end
+            end
+            
+            % plot high-level planner
+            if P.plot_HLP_flag
+                plot(P.HLP)
             end
             
             if hold_check
