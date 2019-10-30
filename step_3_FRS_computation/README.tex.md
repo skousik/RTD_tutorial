@@ -648,11 +648,9 @@ Notice that the FRS is pretty conservative -- it definitely includes more than 3
 
 ## 3.4 Computing a Less Conservative FRS
 
-To conclude this section, we have computed the FRS at degrees 8 and 10 for you. This just requires changing the `degree` variable in `step_3_compute_turtlebot_FRS.m`.
+To conclude this section, we have computed the FRS at degrees 8, 10, and 12 for you. This just required changing the `degree` variable in `step_3_compute_turtlebot_FRS.m`. The degree 10 computation took 1.5 hrs per FRS and used around 50 GB of RAM. The degree 12 computation took around 12.5 hrs per FRS, and used up to 330 GB of RAM.
 
-The computation took 1.5 hrs per FRS on a beefy computer with many many 2.8 GHz cores. It also used tens of gigabytes of RAM, so probably don't try it on a laptop, especially when including $g$.
-
-You'll find the degree 4, 6, 8, and 10 solutions for all initial speed ranges in `step_3_FRS_compuation/data/reach_sets/`.
+All of the FRS .mat files are in `step_3_FRS_compuation/data/reach_sets/`.
 
 ### Example 3
 

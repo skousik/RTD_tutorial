@@ -7,6 +7,7 @@ function [r,a] = compute_turtlebot_point_spacings(R,b)
 %
 % Author: Shreyas Kousik
 % Created: 30 May 2019
+% Updated: 29 Oct 2019
 
     % first, make sure the buffer is valid
     bbar = R ;

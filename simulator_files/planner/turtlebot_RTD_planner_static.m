@@ -1,12 +1,13 @@
 classdef turtlebot_RTD_planner_static < planner
 % Class: turtlebot_RTD_planner_static < planner
 %
-% This class implements RTD for a TurtleBot in static environments. It does
+% This class implements RTD for a Turtlebot in static environments. It does
 % not inherit the generic RTD planner superclass, so that you can see how
 % all the parts of a planner should be written in a simulator framework.
 %
 % Author: Shreyas Kousik
-% Created: 6 June 2019
+% Created: 6 Jun 2019
+% Updated: 29 Oct 2019
 
     %% properties
     properties
@@ -39,6 +40,10 @@ classdef turtlebot_RTD_planner_static < planner
         % plan handling
         current_waypoint
         lookahead_distance = 1.5 ;
+        
+        % plotting
+        plot_obstacles_flag = true ;
+        plot_FRS_flag = false ;
     end
     
     %% methods
@@ -145,13 +150,31 @@ classdef turtlebot_RTD_planner_static < planner
             P.current_plan.T = [] ;
             P.current_plan.U = [] ;
             P.current_plan.Z = [] ;
+            
+        %% 6. clear plot data
+            P.plot_data.obstacles = [] ;
+            P.plot_data.waypoint = [] ;
+            P.plot_data.FRS = [] ;
+            
+        %% 7. set up info structure to save replan dat
+            I = struct('agent_time',[],'agent_state',[],...
+                'k_opt_found',[],...
+                'FRS_index',[],...
+                'waypoint',[],...
+                'obstacles',[],...
+                'obstacles_in_world_frame',[],...
+                'obstacles_in_FRS_frame',[]) ;
+            P.info = I ;
         end
         
     %% replan
         function [T,U,Z] = replan(P,agent_info,world_info)
             % [T,U,Z] = P.replan(agent_info,world_info)
             %
-            % This is the heart of the RTD planner. In this method, we
+            % This is the core of the RTD planner. In this method, we
+            % generate a new trajectory plan, or continue the old plan, by
+            % using the FRS to identify unsafe plans, and then using
+            % an optimization program to find a safe plan.
             
             P.vdisp('Planning!',3)
             
@@ -294,11 +317,15 @@ classdef turtlebot_RTD_planner_static < planner
                 t_stop = v_des / 2 ;
                 [T,U,Z] = make_turtlebot_braking_trajectory(FRS_cur.t_plan,...
                             t_stop,w_des,v_des) ;
+                        
+                % move plan to world coordinates
+                Z(1:3,:) = local_to_world(agent_state,Z(1:3,:)) ;
             else
             % if fmincon was unsuccessful, try to continue executing the
             % previous plan
                 P.vdisp('Continuing previous plan!',5)
-            
+                k_opt = nan(2,1)  % dummy k_opt to fill in info struct
+                
                 % first, check if there is enough of the past plan left to
                 % keep executing
                 T_old = P.current_plan.T ;
@@ -335,20 +362,40 @@ classdef turtlebot_RTD_planner_static < planner
                 end
             end
             
-            % move the plan to where the agent current is
-            Z(1:2,:) = local_to_world(agent_state, Z(1:2,:)) ;
-            
-            % rotate the plan's heading state appropriately
-            Z(3,:) = Z(3,:) + agent_state(3,:) ;
-            
             % save the new plan
             P.current_plan.T = T ;
             P.current_plan.U = U ;
             P.current_plan.Z = Z ;
+            
+        %% 7. update the info structure
+            I = P.info ;
+            
+            I.agent_time = [I.agent_time, agent_info.time(end)] ;
+            I.agent_state = [I.agent_state, agent_state] ;
+            I.k_opt_found = [I.k_opt_found, k_opt] ;
+            I.FRS_index = [I.FRS_index, current_FRS_index] ;
+            I.waypoint = [I.waypoint, z_goal] ;
+            I.obstacles = [I.obstacles, {O}] ;
+            I.obstacles_in_world_frame = [I.obstacles_in_world_frame, {O_pts}] ;
+            I.obstacles_in_FRS_frame = [I.obstacles_in_FRS_frame, {O_FRS}] ;
+            P.info = I ;
+            
         end
         
         %% plotting
         function plot(P,~)
+            P.plot_at_time() ;
+        end
+        
+        function plot_at_time(P,t)
+            if nargin < 2
+                if ~isempty(P.info.agent_time)
+                    t = P.info.agent_time(end) ;
+                else
+                    t = 0 ;
+                end
+            end
+            
             P.vdisp('Plotting!',8)
             
             hold_check = false ;
@@ -357,42 +404,97 @@ classdef turtlebot_RTD_planner_static < planner
                 hold on ;
             end
             
+            % figure out the info index closest to the current time
+            I = P.info ;
+            info_idx = find(t >= I.agent_time,1,'last') ;
+            info_idx_check = ~isempty(info_idx) ;
+            
             % plot current obstacles
-            O = P.current_obstacles ;
-            
-            if isempty(O)
-                O = nan(2,1) ;       
-            end
-            
-            if check_if_plot_is_available(P,'obstacles')
-                P.plot_data.obstacles.XData = O(1,:) ;
-                P.plot_data.obstacles.YData = O(2,:) ;
-            else
-                obs_data = plot(O(1,:),O(2,:),'r.') ;
-                P.plot_data.obstacles = obs_data ;
+            if P.plot_obstacles_flag && info_idx_check
+                O = I.obstacles_in_world_frame{info_idx} ;
+
+                if isempty(O)
+                    O = nan(2,1) ;       
+                end
+
+                if check_if_plot_is_available(P,'obstacles')
+                    P.plot_data.obstacles.XData = O(1,:) ;
+                    P.plot_data.obstacles.YData = O(2,:) ;
+                else
+                    obs_data = plot(O(1,:),O(2,:),'r.') ;
+                    P.plot_data.obstacles = obs_data ;
+                end
             end
             
             % plot current waypoint
-            wp = P.current_waypoint ;
-            if isempty(wp)
-                wp = nan(2,1) ;
+            if P.plot_waypoints_flag && info_idx_check
+                wp = I.waypoint{info_idx} ;
+                if isempty(wp)
+                    wp = nan(2,1) ;
+                end
+
+                if check_if_plot_is_available(P,'waypoint')
+                    P.plot_data.waypoint.XData = wp(1) ;
+                    P.plot_data.waypoint.YData = wp(2) ;
+                else
+                    wp_data = plot(wp(1),wp(2),'b*') ;
+                    P.plot_data.waypoint = wp_data ;
+                end
             end
             
-            if check_if_plot_is_available(P,'waypoint')
-                P.plot_data.waypoint.XData = wp(1) ;
-                P.plot_data.waypoint.YData = wp(2) ;
-            else
-                wp_data = plot(wp(1),wp(2),'b*') ;
-                P.plot_data.waypoint = wp_data ;
+            % plot FRS
+            if P.plot_FRS_flag && info_idx_check
+                % iterate back through the info indices until the last
+                % info index where k_opt was found
+                FRS_info_idx = info_idx ;
+                k_opt_idx = nan(2,1);
+                while FRS_info_idx > 0
+                    k_opt_idx = I.k_opt_found(:,FRS_info_idx) ;
+                    if ~isnan(k_opt_idx(1))
+                        break
+                    else
+                        FRS_info_idx = FRS_info_idx - 1 ;
+                    end
+                end
+                
+                % get the FRS and agent state for the current info index
+                if ~isempty(FRS_info_idx) && FRS_info_idx > 0 && ~isnan(k_opt_idx(1))
+                    FRS_idx = P.FRS{I.FRS_index(FRS_info_idx)} ;
+                    agent_state = I.agent_state(:,FRS_info_idx) ;
+                    
+                    if check_if_plot_is_available(P,'FRS')
+                        % get polynomial sliced by k_opt
+                        FRS_poly = msubs(FRS_idx.FRS_polynomial,FRS_idx.k,k_opt_idx) ;
+                        
+                        % get the 2D contour points to plot
+                        [~,FRS_patch_info,N] = get_2D_contour_points(FRS_poly,FRS_idx.z,1,'Bounds',0.9) ;
+                        
+                        % get the contour with the most vertices
+                        [~,plot_idx] = max(N) ;
+                        FRS_patch_info = FRS_patch_info(plot_idx) ;
+                        
+                        % put the vertices in the world frame
+                        V = FRS_patch_info.Vertices ;
+                        V = FRS_to_world(V',agent_state,...
+                            FRS_idx.initial_x,FRS_idx.initial_y,FRS_idx.distance_scale)' ;
+                        
+                        P.plot_data.FRS.Faces = FRS_patch_info.Faces ;
+                        P.plot_data.FRS.Vertices = V ;
+                    else
+                        if ~isnan(k_opt_idx(1))
+                            FRS_data = plot_turtlebot_FRS_in_world_frame(FRS_idx,...
+                                k_opt_idx,agent_state,...
+                                'FaceColor',[0.5 1 0.3],'FaceAlpha',0.2,...
+                                'EdgeColor',[0 0.6 0],'EdgeAlpha',0.5') ;
+                            P.plot_data.FRS = FRS_data ;
+                        end
+                    end
+                end
             end
             
             if hold_check
                 hold off
             end
-        end
-        
-        function plot_at_time(P,~)
-            P.vdisp('No plotting at current time defined.',10)
         end
     end
 end

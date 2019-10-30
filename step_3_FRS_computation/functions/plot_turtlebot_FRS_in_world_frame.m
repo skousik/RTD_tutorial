@@ -10,13 +10,19 @@ function h = plot_turtlebot_FRS_in_world_frame(FRS,k,pose,varargin)
 % This function plots a patch, so it also takes in all the usual patch
 % property/value arguments, and will return a patch plot handle if an
 % output is specified.
+%
+% Author: Shreyas Kousik and Sean Vaskov
+% Created: 21 Oct 2019
+% Updated: 29 Oct 2019
+%
+% See also: get_2D_contour_points, FRS_to_world
 
     % evaluate FRS at k
     I = FRS.FRS_polynomial ;
     I = msubs(I,FRS.k,k) ;
     
     % generate patch info
-    [~,FRS_patch_info] = get_2D_contour_points(I,FRS.z,1) ;
+    [~,FRS_patch_info,N_vertices] = get_2D_contour_points(I,FRS.z,1,'Bounds',0.9) ;
     
     if ~isempty(FRS_patch_info)
         % get the FRS properties needed to plot in world frame
@@ -29,14 +35,16 @@ function h = plot_turtlebot_FRS_in_world_frame(FRS,k,pose,varargin)
             Dy = FRS.distance_scale ;
         end
         
-        h = [] ;
+        % find the patch info with the largest number of vertices, because
+        % that is probably the one that matters
+        [~,idx] = max(N_vertices) ;
         
-        for idx = 1:length(FRS_patch_info)
-            V_idx = FRS_patch_info(idx).Vertices' ;
-            FRS_patch_info(idx).Vertices = FRS_to_world(V_idx,pose,x0,y0,Dx,Dy)' ;
-            h_idx = patch(FRS_patch_info(idx),varargin{:}) ;
-            h = [h ; h_idx] ;
-        end
+        % get the data for the patch into the world frame
+        V_idx = FRS_patch_info(idx).Vertices' ;
+        FRS_patch_info(idx).Vertices = FRS_to_world(V_idx,pose,x0,y0,Dx,Dy)' ;
+        
+        % plot the patch
+        h = patch(FRS_patch_info(idx),varargin{:}) ;
     end
     
     if nargout < 1

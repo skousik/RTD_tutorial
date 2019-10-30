@@ -4,7 +4,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 28 Oct 2019
-% Updated: -
+% Updated: 29 Oct 2019
 %
 clear ; clc ; close all
 %% user parameters
@@ -15,7 +15,7 @@ v_0 = 1.25 ; % m/s
 w_des = 0.4 ; % rad/s
 v_des = 1.25 ; % m/s
 
-% degree FRS to visualize (pick 4, 6, 8, or 10)
+% degree FRS to visualize (pick 4, 6, 8, 10, or 12)
 degree = 6 ;
 
 %% automated from here

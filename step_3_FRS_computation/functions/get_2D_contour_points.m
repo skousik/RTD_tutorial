@@ -1,4 +1,4 @@
-function [P,patch_data] = get_2D_contour_points(p,x,l,varargin)
+function [P,patch_data,N_vertices] = get_2D_contour_points(p,x,l,varargin)
 % P = get_2D_contour_points(p,x,l,'keyword1',value1,'keyword2',value2,...)
 % [P,patch_data] = get_2D_contour_points(...)
 %
@@ -28,7 +28,7 @@ function [P,patch_data] = get_2D_contour_points(p,x,l,varargin)
 %
 % Authors: Shreyas Kousik and Sean Vaskov
 % Created: 29 May 2019
-% Updated: 23 Oct 2019
+% Updated: 29 Oct 2019
 %
     %% parse input arguments
     if nargin < 3
@@ -52,6 +52,9 @@ function [P,patch_data] = get_2D_contour_points(p,x,l,varargin)
                 Scale = varargin{idx+1} ;
             case 'Bounds'
                 Bounds = varargin{idx+1} ;
+                if length(Bounds) == 1
+                    Bounds = Bounds.*[-1 1 -1 1] ;
+                end
             case 'GridDensity'
                 GridDensity = varargin{idx+1} ;
         end
@@ -66,14 +69,15 @@ function [P,patch_data] = get_2D_contour_points(p,x,l,varargin)
     F = reshape(full(msubs(p,x(1:2), X)),GridDensity,GridDensity) ;
 
     % create contour matrix
-    P_raw = contourc(x_vec,y_vec,F,[l l]);
+    P_raw = contourc(x_vec,y_vec,F,[l l]) ;
     
     if ~isempty(P_raw)
 
         % find the columns in the contour matrix that separate the individual
         % contours - the first entry in these columns will be the input l, and
         % the second entry will be an integer
-        idxs = find((P_raw(1,:) == l) & (mod(P_raw(2,:),1) == 0));
+        idxs = find((P_raw(1,:) == l) & (mod(P_raw(2,:),1) == 0)) ;
+        N_vertices = P_raw(2,idxs) ;
         
         % set up for patch data output
         if nargout > 1

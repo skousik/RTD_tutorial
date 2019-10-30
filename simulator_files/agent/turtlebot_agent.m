@@ -46,7 +46,7 @@ classdef turtlebot_agent < RTD_agent_2D
             n_states = 4 ;
             n_inputs = 2 ;
             stopping_time = 3 ; % conservative estimate
-            sensor_radius = 4 ;
+            sensor_radius = 3 ;
             LLC = turtlebot_PD_LLC ;
             
             % create agent
