@@ -9,6 +9,7 @@ classdef turtlebot_RRT_star_planner < planner
         current_path = [] ;
         lookahead_distance = 1 ;
         desired_speed = 1 ;
+        plot_HLP_flag = false ;
     end
     
     %% methods
@@ -20,6 +21,7 @@ classdef turtlebot_RRT_star_planner < planner
             
             % set high-level planner
             P.HLP = RRT_star_HLP() ;
+            P.HLP.plot_tree_flag = true ;
             
             % set up plot data
             P.plot_data.best_path = [] ;
@@ -30,8 +32,13 @@ classdef turtlebot_RRT_star_planner < planner
         function setup(P,agent_info,world_info)
             P.vdisp('Setting up high-level planner',4)
             
+            P.HLP.nodes = agent_info.position(:,end) ;
+            P.HLP.nodes_parent = 0 ;
+            P.HLP.cost = 0 ;
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
+            P.HLP.timeout = P.t_plan ;
+            P.HLP.grow_new_tree_every_iteration_flag = false ;
             
             % set up bounds
             P.bounds = world_info.bounds + P.buffer.*[1 -1 1 -1] ;
@@ -49,16 +56,16 @@ classdef turtlebot_RRT_star_planner < planner
             O = world_info.obstacles ;
             
             if ~isempty(O)
-                O_buf = buffer_polygon_obstacles(O,P.buffer,2) ;
+                O_buf = buffer_polygon_obstacles(O,P.buffer) ;
             else
                 O_buf = O ;
             end
             
             % run RRT star
-            P.HLP.plan_path(agent_info,O_buf,P.lookahead_distance) ;
+            P.HLP.grow_tree(agent_info,O_buf) ;
             
             % get the current best path out
-            X = P.HLP.plan ;
+            X = P.HLP.best_path ;
             
             % if the path is empty or too short, make sure it's long enough
             switch size(X,2)
@@ -67,9 +74,6 @@ classdef turtlebot_RRT_star_planner < planner
                 case 1
                     X = [X X] ;
             end
-            
-            % the RRT* HLP outputs a path from end to beginning, so flip it
-            X = X(:,end:-1:1) ;
                 
             % convert X to a trajectory by assuming that we traverse it at
             % the given max speed
@@ -123,8 +127,10 @@ classdef turtlebot_RRT_star_planner < planner
                 end
             end
             
-            % FOR DEBUGGING: plot RRT nodes
-            % plot(P.HLP)
+            % plot RRT nodes
+            if P.plot_HLP_flag
+                plot(P.HLP)
+            end
         end
         
         function plot_at_time(P,t)

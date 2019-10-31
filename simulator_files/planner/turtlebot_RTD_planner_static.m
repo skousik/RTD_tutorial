@@ -307,7 +307,7 @@ classdef turtlebot_RTD_planner_static < planner
             end
         
         %% 6. make the new plan or continue the old plan
-            P.vdisp('Creating new plan',4)
+            P.vdisp('Creating plan from trajopt result',4)
             
             % if fmincon was successful, create a new plan
             if exitflag > 0
@@ -350,10 +350,11 @@ classdef turtlebot_RTD_planner_static < planner
                     U = U_old(:,T_log) ;
                     Z = Z_old(:,T_log) ;
                 else
-                    % create stopped control input
+                    % create stopped control input with the agent's current
+                    % position as the desired position
                     T = [0, 2*P.t_move] ;
                     U = zeros(2,2) ;
-                    Z = [zeros(4,2)] ;
+                    Z = [repmat(agent_info.position(:,end),1,2) ; zeros(2,2)] ;
                 end
                 
                 % make sure the new plan is long enough

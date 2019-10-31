@@ -4,7 +4,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 6 June 2019
-% Updated: 29 Oct 2019
+% Updated: 30 Oct 2019
 %
 %% user parameters
 % world
@@ -34,6 +34,7 @@ P = turtlebot_RTD_planner_static('verbose',verbose_level,'buffer',buffer,...
                                  'FRS_degree',FRS_degree,...
                                  'plot_FRS_flag',plot_FRS_flag,...
                                  'plot_HLP_flag',plot_HLP_flag) ;
+
 P.HLP = RRT_star_HLP() ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...

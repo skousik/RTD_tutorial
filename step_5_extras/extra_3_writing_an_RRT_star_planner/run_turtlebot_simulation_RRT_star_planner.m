@@ -4,6 +4,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 19 Oct 2019
+% Updated: 30 Oct 2019
 %
 %% user parameters
 % agent
@@ -26,8 +27,8 @@ verbose_level = 5 ;
 %% automated from here
 A = turtlebot_agent ;
 
-% this is needed to the agent to track the RRT* output
-A.LLC.yaw_gain = 10 ;
+% this is needed for the agent to track the RRT* output
+A.LLC.gains.yaw = 10 ;
 A.LLC.lookahead_time = 0.1 ;
 
 P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',buffer,...
