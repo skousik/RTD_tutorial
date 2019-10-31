@@ -4,6 +4,10 @@ classdef turtlebot_RRT_star_planner < planner
 % This class is a "pass through" for the RRT* high-level planner. It runs
 % an RRT* algorithm until a timeout is reached, then converts the resulting
 % best path into a trajectory to pass to the agent to execute.
+%
+% Author: Shreyas Kousik
+% Created: Oct 2019
+% Updated: 31 Oct 2019
     
     properties
         current_path = [] ;
@@ -21,7 +25,6 @@ classdef turtlebot_RRT_star_planner < planner
             
             % set high-level planner
             P.HLP = RRT_star_HLP() ;
-            P.HLP.plot_tree_flag = true ;
             
             % set up plot data
             P.plot_data.best_path = [] ;
@@ -38,7 +41,8 @@ classdef turtlebot_RRT_star_planner < planner
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             P.HLP.timeout = P.t_plan ;
-            P.HLP.grow_new_tree_every_iteration_flag = false ;
+            P.HLP.grow_new_tree_every_iteration_flag = true ;
+            P.HLP.plot_tree_flag = false ;
             
             % set up bounds
             P.bounds = world_info.bounds + P.buffer.*[1 -1 1 -1] ;

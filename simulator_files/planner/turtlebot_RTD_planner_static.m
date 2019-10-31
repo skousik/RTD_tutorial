@@ -335,7 +335,7 @@ classdef turtlebot_RTD_planner_static < planner
                 Z_old = P.current_plan.Z ;
                 
                 if ~isempty(T_old)
-                    % try shifting the current plan by P.t_plan
+                    % try shifting the current plan by P.t_move
                     T_log = T_old >= P.t_move ;
                 else
                     T_log = false ;
