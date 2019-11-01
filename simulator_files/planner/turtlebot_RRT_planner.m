@@ -39,7 +39,7 @@ classdef turtlebot_RRT_planner < planner
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             P.HLP.timeout = P.t_plan ;
-            P.HLP.grow_tree_mode = 'seed' ;
+            P.HLP.grow_tree_mode = 'new' ;
             P.HLP.plot_tree_flag = true ;
             
             % set up bounds

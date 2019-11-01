@@ -156,6 +156,7 @@ classdef turtlebot_RTD_planner_static < planner
         %% 6. clear plot data
             P.plot_data.obstacles = [] ;
             P.plot_data.waypoint = [] ;
+            P.plot_data.waypoints = [] ;
             P.plot_data.FRS = [] ;
             
         %% 7. set up info structure to save replan dat
@@ -163,6 +164,7 @@ classdef turtlebot_RTD_planner_static < planner
                 'k_opt_found',[],...
                 'FRS_index',[],...
                 'waypoint',[],...
+                'waypoints',[],...
                 'obstacles',[],...
                 'obstacles_in_world_frame',[],...
                 'obstacles_in_FRS_frame',[]) ;
@@ -378,9 +380,11 @@ classdef turtlebot_RTD_planner_static < planner
             I.k_opt_found = [I.k_opt_found, k_opt] ;
             I.FRS_index = [I.FRS_index, current_FRS_index] ;
             I.waypoint = [I.waypoint, z_goal] ;
+            I.waypoints = [I.waypoints, {P.HLP.waypoints}] ;
             I.obstacles = [I.obstacles, {O}] ;
             I.obstacles_in_world_frame = [I.obstacles_in_world_frame, {O_pts}] ;
             I.obstacles_in_FRS_frame = [I.obstacles_in_FRS_frame, {O_FRS}] ;
+            
             P.info = I ;
             
         end
@@ -496,8 +500,21 @@ classdef turtlebot_RTD_planner_static < planner
             end
             
             % plot high-level planner
-            if P.plot_HLP_flag
-                plot(P.HLP)
+            if P.plot_HLP_flag && info_idx_check
+                % plot(P.HLP)
+                waypoints = I.waypoints{info_idx} ;
+                
+                if isempty(waypoints)
+                    waypoints = nan(2,1) ;
+                end
+                
+                if check_if_plot_is_available(P,'waypoints')
+                    P.plot_data.waypoints.XData = waypoints(1,:) ;
+                    P.plot_data.waypoints.YData = waypoints(2,:) ;
+                else
+                    wps_data = plot_path(waypoints,'--','Color',[0.7 0.5 0.2]) ;
+                    P.plot_data.waypoints = wps_data;
+                end
             end
             
             if hold_check
