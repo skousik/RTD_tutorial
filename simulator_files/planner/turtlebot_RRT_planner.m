@@ -7,7 +7,7 @@ classdef turtlebot_RRT_planner < planner
     %
     % Author: Shreyas Kousik
     % Created: 31 Oct 2019
-    % Updated: 31 Oct 2019
+    % Updated: 4 Nov 2019
     
     properties
         lookahead_distance = 1 ;
@@ -147,6 +147,20 @@ classdef turtlebot_RRT_planner < planner
             d = dist_polyline_cumulative(X) ;
             T = d./s ;
             
+            % if the tree growth mode is using a seed, then shift the time
+            % and trajectory by the agent's current time
+            if strcmpi(P.HLP.grow_tree_mode,'seed')
+                t_cur = agent_info.time(end) ;
+                T_log = T >= t_cur ;
+                T_shift = T(T_log) ;
+                if T_shift(1) > t_cur
+                    T_shift = [t_cur, T_shift] ;
+                end
+                X = match_trajectories(T_shift,T,X) ;
+                
+                T = T_shift - t_cur ;
+            end                
+            
             % generate headings along trajectory
             dX = diff(X,[],2) ;
             h = atan2(dX(2,:),dX(1,:)) ;
@@ -185,16 +199,24 @@ classdef turtlebot_RRT_planner < planner
         
         %% plot
         function plot(P,~)
-            % plot current plan
-            P.plot_object(P.current_plan.Z,'best_path','--','Color',[0.7 0.5 0.2]) ;
-            
-            % plot obstacles
-            P.plot_object(P.current_obstacles,'obstacles','r:') ;
+            hc = hold_switch() ;
             
             % plot RRT nodes
             if P.plot_HLP_flag
                 plot(P.HLP)
             end
+            
+            % plot current plan
+            if ~isempty(P.current_plan.Z)
+                plot_object(P,P.current_plan.Z,'best_path','--','Color',[0.7 0.5 0.2]) ;
+            end
+            
+            % plot obstacles
+            if ~isempty(P.current_obstacles)
+                plot_object(P,P.current_obstacles,'obstacles','r:') ;
+            end
+            
+            hold_switch(hc) ;
         end
         
         function plot_at_time(P,t)
@@ -214,18 +236,6 @@ classdef turtlebot_RRT_planner < planner
                 % plot obstacles
                 O = P.info.obstacles{idx} ;
                 P.plot_object(O,'obstacles','r:') ;
-            end
-        end
-        
-        function plot_object(P,obj,plot_data_fieldname,varargin)
-            if ~isempty(obj)
-                if check_if_plot_is_available(P,plot_data_fieldname)
-                    P.plot_data.(plot_data_fieldname).XData = obj(1,:) ;
-                    P.plot_data.(plot_data_fieldname).YData = obj(2,:) ;
-                else
-                    obj = plot(obj(1,:),obj(2,:),varargin{:}) ;
-                    P.plot_data.(plot_data_fieldname) = obj ;
-                end
             end
         end
     end
