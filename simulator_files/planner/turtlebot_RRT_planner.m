@@ -14,12 +14,16 @@ classdef turtlebot_RRT_planner < planner
         desired_speed = 1 ;
         plot_HLP_flag = false ;
         
-        % method for growing the tree; if 'iter' is chosen, then the RRT
-        % runs for P.t_plan every planning iteration, but if 'once' is
+        % method for initializing the tree; if 'iter' is chosen, then the
+        % RRT runs for P.t_plan every planning iteration, but if 'once' is
         % chosen, then the entire tree is grown in the first iteration
-        grow_tree_mode = 'iter' ;
+        initialize_tree_mode = 'iter' ;
         
-        % if P.grow_tree_mode is 'once' then we pick an amount of time
+        % method for growing the tree within the RRT_HLP; choose 'new' or
+        % 'seed' or 'keep'; see the grow_tree_mode property in RRT_HLP
+        HLP_grow_tree_mode = 'new' ;
+        
+        % if P.initialize_tree_mode is 'once' then we pick an amount of time
         % allowed to grow the tree
         grow_tree_once_timeout = 5 ; % s
     end
@@ -50,7 +54,7 @@ classdef turtlebot_RRT_planner < planner
             P.HLP.goal = world_info.goal ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             P.HLP.timeout = P.t_plan ;
-            P.HLP.grow_tree_mode = 'new' ;
+            P.HLP.grow_tree_mode = P.HLP_grow_tree_mode ;
             P.HLP.plot_tree_flag = false ;
             P.HLP.plot_best_path_flag = false ;
             P.HLP.plot_waypoint_flag = false ;
@@ -65,7 +69,7 @@ classdef turtlebot_RRT_planner < planner
             end
             
             % grow the tree if necessary
-            if strcmpi(P.grow_tree_mode,'once')
+            if strcmpi(P.initialize_tree_mode,'once')
                 % set the RRT timeout
                 P.HLP.timeout = P.grow_tree_once_timeout ;
                 
@@ -97,7 +101,7 @@ classdef turtlebot_RRT_planner < planner
             O = P.process_obstacles(world_info) ;
             
             % run RRT
-            if strcmpi(P.grow_tree_mode,'iter')
+            if strcmpi(P.initialize_tree_mode,'iter')
                 P.vdisp('Growing tree',5)
                 exit_flag = P.HLP.grow_tree(agent_info,O) ;
             else
@@ -159,7 +163,7 @@ classdef turtlebot_RRT_planner < planner
                 X = match_trajectories(T_shift,T,X) ;
                 
                 T = T_shift - t_cur ;
-            end                
+            end
             
             % generate headings along trajectory
             dX = diff(X,[],2) ;
@@ -231,11 +235,15 @@ classdef turtlebot_RRT_planner < planner
             if ~isempty(idx)
                 % plot best path
                 Z = P.info.plan{idx} ;
-                P.plot_object(Z,'best_path','--','Color',[0.7 0.5 0.2]) ;
+                if ~isempty(Z)
+                    plot_object(P,Z,'best_path','--','Color',[0.7 0.5 0.2]) ;
+                end
                 
                 % plot obstacles
                 O = P.info.obstacles{idx} ;
-                P.plot_object(O,'obstacles','r:') ;
+                if ~isempty(O)
+                    plot_object(P,O,'obstacles','r:') ;
+                end
             end
         end
     end
