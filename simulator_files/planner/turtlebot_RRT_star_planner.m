@@ -7,7 +7,7 @@ classdef turtlebot_RRT_star_planner < planner
 %
 % Author: Shreyas Kousik
 % Created: Oct 2019
-% Updated: 31 Oct 2019
+% Updated: 9 Nov 2019
     
     properties
         current_path = [] ;
@@ -35,28 +35,23 @@ classdef turtlebot_RRT_star_planner < planner
         function setup(P,agent_info,world_info)
             P.vdisp('Setting up high-level planner',4)
             
-            P.HLP.nodes = agent_info.position(:,end) ;
-            P.HLP.nodes_parent = 0 ;
-            P.HLP.cost = 0 ;
-            P.HLP.goal = world_info.goal ;
+            % run RRT* setup
+            P.HLP.setup(agent_info,world_info) ;
+            
+            % fix other properties
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             P.HLP.timeout = P.t_plan ;
-            P.HLP.grow_new_tree_every_iteration_flag = true ;
+            P.HLP.grow_tree_mode = 'new' ;
             P.HLP.plot_tree_flag = false ;
             
             % set up bounds
             P.bounds = world_info.bounds + P.buffer.*[1 -1 1 -1] ;
-            
-            try
-                P.HLP.bounds = P.bounds ;
-            catch
-                P.vdisp('High level planner has no bounds field.',9) ;
-            end
+            P.HLP.bounds = P.bounds ;
         end
         
         %% replan
         function [T,U,Z] = replan(P,agent_info,world_info)
-            % process obstacles
+            % buffer obstacles
             O = world_info.obstacles ;
             
             if ~isempty(O)
@@ -65,8 +60,11 @@ classdef turtlebot_RRT_star_planner < planner
                 O_buf = O ;
             end
             
+            % put obstacles back into world_info object
+            world_info.obstacles = O ;
+            
             % run RRT star
-            P.HLP.grow_tree(agent_info,O_buf) ;
+            P.HLP.grow_tree(agent_info,world_info) ;
             
             % get the current best path out
             X = P.HLP.best_path ;

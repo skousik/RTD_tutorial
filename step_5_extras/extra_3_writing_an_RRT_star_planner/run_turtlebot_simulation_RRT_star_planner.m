@@ -1,14 +1,14 @@
 %% description
 % This script runs a simulation with the TurtleBot in the simulator
-% framework, using RRT* to plan online.
+% framework, using RRT to plan online.
 %
 % Author: Shreyas Kousik
 % Created: 19 Oct 2019
-% Updated: 30 Oct 2019
+% Updated: 9 Nov 2019
 %
 %% user parameters
 % agent
-desired_speed = 1 ; % m/s
+desired_speed = 0.25 ; % m/s
 
 % world
 obstacle_size_bounds = [0.2, 0.3] ; % side length [min, max]
@@ -23,6 +23,8 @@ t_move = 0.5 ;
 
 % simulation
 verbose_level = 5 ;
+max_sim_iterations = 100 ;
+max_sim_time = 100 ;
 
 %% automated from here
 A = turtlebot_agent ;
@@ -31,7 +33,7 @@ A = turtlebot_agent ;
 A.LLC.gains.yaw = 10 ;
 A.LLC.lookahead_time = 0.1 ;
 
-P = turtlebot_RRT_star_planner('verbose',verbose_level,'buffer',buffer,...
+P = turtlebot_RRT_planner('verbose',verbose_level,'buffer',buffer,...
     't_plan',t_plan,'t_move',t_move,'desired_speed',desired_speed) ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
@@ -39,7 +41,7 @@ W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
                      'obstacle_size_bounds',obstacle_size_bounds) ;
 
 S = simulator(A,W,P,'allow_replan_errors',true,'verbose',verbose_level,...
-              'max_sim_time',30,'max_sim_iterations',60) ;
+              'max_sim_time',max_sim_time,'max_sim_iterations',max_sim_iterations) ;
 
 %% run simulation
 S.run() ;

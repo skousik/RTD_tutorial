@@ -7,7 +7,7 @@ classdef turtlebot_RRT_planner < planner
     %
     % Author: Shreyas Kousik
     % Created: 31 Oct 2019
-    % Updated: 4 Nov 2019
+    % Updated: 9 Nov 2019
     
     properties
         lookahead_distance = 1 ;
@@ -100,10 +100,13 @@ classdef turtlebot_RRT_planner < planner
             % get obstacles
             O = P.process_obstacles(world_info) ;
             
+            % reassign the obstacles to be buffered for the RRT
+            world_info.obstacles = O ;
+            
             % run RRT
             if strcmpi(P.initialize_tree_mode,'iter')
                 P.vdisp('Growing tree',5)
-                exit_flag = P.HLP.grow_tree(agent_info,O) ;
+                exit_flag = P.HLP.grow_tree(agent_info,world_info) ;
             else
                 P.vdisp('Using existing tree',5) ;
                 exit_flag = 1 ;
