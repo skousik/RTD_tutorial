@@ -21,7 +21,7 @@ classdef turtlebot_RRT_planner < planner
         
         % method for growing the tree within the RRT_HLP; choose 'new' or
         % 'seed' or 'keep'; see the grow_tree_mode property in RRT_HLP
-        HLP_grow_tree_mode = 'new' ;
+        HLP_grow_tree_mode = 'seed' ;
         
         % if P.initialize_tree_mode is 'once' then we pick an amount of time
         % allowed to grow the tree
@@ -49,9 +49,8 @@ classdef turtlebot_RRT_planner < planner
         function setup(P,agent_info,world_info)
             P.vdisp('Setting up high-level planner',4)
             
-            P.HLP.nodes = agent_info.position(:,end) ;
-            P.HLP.nodes_parent = 0 ;
-            P.HLP.goal = world_info.goal ;
+            P.HLP.setup(agent_info,world_info) ;
+            
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
             P.HLP.timeout = P.t_plan ;
             P.HLP.grow_tree_mode = P.HLP_grow_tree_mode ;

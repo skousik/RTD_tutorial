@@ -61,7 +61,7 @@ classdef turtlebot_RRT_star_planner < planner
             end
             
             % put obstacles back into world_info object
-            world_info.obstacles = O ;
+            world_info.obstacles = O_buf ;
             
             % run RRT star
             P.HLP.grow_tree(agent_info,world_info) ;
@@ -76,6 +76,9 @@ classdef turtlebot_RRT_star_planner < planner
                 case 1
                     X = [X X] ;
             end
+            
+            % make sure nodes of X are unique
+            X = unique(X','rows','stable')' ;
                 
             % convert X to a trajectory by assuming that we traverse it at
             % the given max speed
