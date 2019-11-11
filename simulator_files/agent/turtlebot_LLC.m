@@ -4,6 +4,7 @@ classdef turtlebot_LLC < low_level_controller
         lookahead_time
         lookahead_distance
         lookahead_type = 'time' ;
+        interp_mode = 'previous' ;
         
         % control gains structure
         gains = struct() ;

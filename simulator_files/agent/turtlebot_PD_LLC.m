@@ -46,14 +46,14 @@ classdef turtlebot_PD_LLC < turtlebot_LLC
             if isempty(Z_des)
                 % if no desired trajectory is passed in, then we assume
                 % that we are emergency braking
-                u_des = match_trajectories(t_fdbk,T_des,U_des,'previous') ;
+                u_des = match_trajectories(t_fdbk,T_des,U_des,LLC.interp_mode) ;
                 p_des = z_cur(A.position_indices) ;
                 v_des = 0 ;
                 h_des = h_cur ;
             else
                 % otherwise, we are doing feedback about a desired
                 % trajectory
-                [u_des,z_des] = match_trajectories(t_fdbk,T_des,U_des,T_des,Z_des,'previous') ;
+                [u_des,z_des] = match_trajectories(t_fdbk,T_des,U_des,T_des,Z_des,LLC.interp_mode) ;
                 p_des = z_des(A.position_indices) ;
                 v_des = z_des(A.speed_index) ;
                 h_des = z_des(A.heading_index) ;
