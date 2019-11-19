@@ -14,6 +14,9 @@ classdef turtlebot_RRT_planner < planner
         desired_speed = 1 ;
         plot_HLP_flag = false ;
         
+        % HLP type
+        HLP_type = 'RRT' ; % 'rrt' or 'rrt*' or 'connect' or 'connect*'
+        
         % method for initializing the tree; if 'iter' is chosen, then the
         % RRT runs for P.t_plan every planning iteration, but if 'once' is
         % chosen, then the entire tree is grown in the first iteration
@@ -38,7 +41,18 @@ classdef turtlebot_RRT_planner < planner
                 varargin{:}) ;
             
             % set high-level planner
-            P.HLP = RRT_HLP() ;
+            switch lower(P.HLP_type)
+                case 'rrt'
+                    P.HLP = RRT_HLP() ;
+                case 'rrt*'
+                    P.HLP = RRT_star_HLP() ;
+                case 'connect'
+                    P.HLP = RRT_connect_HLP() ;
+                case 'connect*'
+                    P.HLP = RRT_star_connect_HLP() ;
+                otherwise
+                    error('Invalid high level planner type!')
+            end
             
             % set up plot data
             P.plot_data.best_path = [] ;
@@ -69,26 +83,48 @@ classdef turtlebot_RRT_planner < planner
             
             % grow the tree if necessary
             if strcmpi(P.initialize_tree_mode,'once')
+                P.vdisp('Growing RRT!',2)
+                
                 % set the RRT timeout
                 P.HLP.timeout = P.grow_tree_once_timeout ;
+                
+                % FOR DEBUGGING
+                % P.HLP.plot_while_growing_tree_flag = true ;
                 
                 % get obstacles
                 O = P.process_obstacles(world_info) ;
                 
+                % reassign the obstacles to be buffered for the RRT
+                world_info.obstacles = O ;
+                
                 % grow the tree
-                exit_flag = P.HLP.grow_tree(agent_info,O) ;
+                exit_flag = P.HLP.grow_tree(agent_info,world_info) ;
                 
                 if exit_flag > 0
                     P.vdisp('Tree grown successfully!',3)
+                    [T,U,Z] = P.process_tree(agent_info) ;
+                    
+                    % add some time to the beginning of the plan to deal
+                    % with incrementing
+                    T = [-P.t_plan, T] ;
+                    U = [U(:,1), U] ;
+                    Z = [Z(:,1), Z] ;
+                    
+                    % set the current plan
+                    P.current_plan.T = T ;
+                    P.current_plan.U = U ;
+                    P.current_plan.Z = Z ;
                 else
                     error('Tree growth failed!')
                 end
             end
             
             % initialize current plan
-            P.current_plan.T = [] ;
-            P.current_plan.U = [] ;
-            P.current_plan.Z = [] ;
+            if isempty(P.current_plan.T)
+                P.current_plan.T = [] ;
+                P.current_plan.U = [] ;
+                P.current_plan.Z = [] ;
+            end
             
             % set up info object
             P.info = struct('plan',[],'obstacles',[],'agent_time',[]) ;
@@ -106,16 +142,16 @@ classdef turtlebot_RRT_planner < planner
             if strcmpi(P.initialize_tree_mode,'iter')
                 P.vdisp('Growing tree',5)
                 exit_flag = P.HLP.grow_tree(agent_info,world_info) ;
+                
+                if exit_flag > 0
+                    P.vdisp('Plan found successfully',5)
+                    [T,U,Z] = P.process_tree(agent_info) ;
+                else
+                    P.vdisp('No new plan found')
+                    [T,U,Z] = P.increment_plan(agent_info) ;
+                end
             else
                 P.vdisp('Using existing tree',5) ;
-                exit_flag = 1 ;
-            end
-            
-            if exit_flag > 0
-                P.vdisp('Plan found successfully',5)
-                [T,U,Z] = P.process_tree(agent_info) ;
-            else
-                P.vdisp('No new plan found')
                 [T,U,Z] = P.increment_plan(agent_info) ;
             end
             
@@ -146,6 +182,9 @@ classdef turtlebot_RRT_planner < planner
         function [T,U,Z] = process_tree(P,agent_info)
             % if the RRT is successful, return the best path
             X = P.HLP.best_path ;
+            
+            % make sure the nodes are unique
+            X = unique(X','rows','stable')' ;
             
             % convert X to a trajectory by assuming that we traverse it at
             % the given max speed
@@ -190,9 +229,13 @@ classdef turtlebot_RRT_planner < planner
             % try to increment the previous plan
             if any(T >= 2*P.t_move)
                 P.vdisp('Incrementing previous plan',5)
+                
                 T_log = T >= P.t_move ;
+                
                 T_interp = unique([P.t_move, T(T_log)],'stable') ;
+                
                 [U,Z] = match_trajectories(T_interp,T,U,T,Z) ;
+               
                 T = T_interp - P.t_move ;
             else
                 % otherwise, just give back the agent's current state
