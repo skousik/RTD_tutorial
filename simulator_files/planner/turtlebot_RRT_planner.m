@@ -81,6 +81,11 @@ classdef turtlebot_RRT_planner < planner
                 P.vdisp('High level planner has no bounds field.',9) ;
             end
             
+            % initialize current plan
+            P.current_plan.T = [] ;
+            P.current_plan.U = [] ;
+            P.current_plan.Z = [] ;
+            
             % grow the tree if necessary
             if strcmpi(P.initialize_tree_mode,'once')
                 P.vdisp('Growing RRT!',2)
@@ -117,13 +122,6 @@ classdef turtlebot_RRT_planner < planner
                 else
                     error('Tree growth failed!')
                 end
-            end
-            
-            % initialize current plan
-            if isempty(P.current_plan.T)
-                P.current_plan.T = [] ;
-                P.current_plan.U = [] ;
-                P.current_plan.Z = [] ;
             end
             
             % set up info object
