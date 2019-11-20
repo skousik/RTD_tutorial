@@ -4,7 +4,7 @@
 %
 % Author: Shreyas Kousik
 % Created: 19 Oct 2019
-% Updated: 19 Nov 2019
+% Updated: 20 Nov 2019
 %
 %% user parameters
 % agent
@@ -21,10 +21,14 @@ goal_radius = 0.5 ;
 buffer = 0.3 ; % m
 t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
 t_move = 0.5 ;
-initialize_tree_mode = 'once' ; % 'iter' or 'once'
-HLP_grow_tree_mode = 'new' ; % 'new' or 'seed' or 'keep' (only matters if using 'iter' above)
-grow_tree_once_timeout = 2 ;
-HLP_type = 'RRT*' ; % 'rrt' or 'rrt*' or 'connect' or 'connect*'
+initialize_tree_mode = 'iter' ; % 'iter' or 'once'
+HLP_grow_tree_mode = 'seed' ; % 'new' or 'seed' or 'keep' (only matters if using 'iter' above)
+grow_tree_once_timeout = 10 ;
+HLP_type = 'rrt' ; % 'rrt' or 'rrt*' or 'connect' or 'connect*'
+
+% plotting
+plot_HLP_flag = true ;
+plot_tree_growth_flag = true ;
 
 % simulation
 verbose_level = 5 ;
@@ -44,6 +48,9 @@ P = turtlebot_RRT_planner('verbose',verbose_level,'buffer',buffer,...
     'initialize_tree_mode',initialize_tree_mode,...
     'grow_tree_once_timeout',grow_tree_once_timeout,...
     'HLP_grow_tree_mode',HLP_grow_tree_mode) ;
+
+P.plot_HLP_flag = plot_HLP_flag ;
+P.HLP.plot_while_growing_tree_flag = plot_tree_growth_flag ;
 
 W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
                      'verbose',verbose_level,'goal_radius',goal_radius,...

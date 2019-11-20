@@ -192,10 +192,11 @@ classdef turtlebot_RRT_planner < planner
             
             % if the tree growth mode is using a seed, then shift the time
             % and trajectory by the agent's current time
-            if strcmpi(P.HLP.grow_tree_mode,'seed')
+            if strcmpi(P.HLP.grow_tree_mode,'seed') || strcmpi(P.HLP.grow_tree_mode,'keep')
                 t_cur = agent_info.time(end) ;
                 T_log = T >= t_cur ;
                 T_shift = T(T_log) ;
+                
                 if T_shift(1) > t_cur
                     T_shift = [t_cur, T_shift] ;
                 end
