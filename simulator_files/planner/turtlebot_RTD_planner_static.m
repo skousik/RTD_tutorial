@@ -27,6 +27,9 @@ classdef turtlebot_RTD_planner_static < planner
         % plot_waypoints_flag = false ;
         
     % RTD-specific properties
+        % agent information
+        agent_footprint = 0.2 ;
+    
         % FRS handling
         FRS % this is a cell array of loaded info from FRS .mat files
         FRS_degree = 10 ; % set to 4, 6, 8, 10, or 12
@@ -123,16 +126,8 @@ classdef turtlebot_RTD_planner_static < planner
         %% 3. set up high level planner
             P.vdisp('Setting up high-level planner',4)
             
-            P.HLP.goal = world_info.goal ;
+            P.HLP.setup(agent_info,world_info) ;
             P.HLP.default_lookahead_distance = P.lookahead_distance ;
-            
-            % try giving the HLP bounds
-            try
-                P.HLP.bounds = P.bounds ;
-            catch
-                P.vdisp('High level planner has no bounds field.',9) ;
-            end
-            
             
         %% 4. process the FRS polynomial
             P.vdisp('Processing FRS polynomial',4)
@@ -221,6 +216,10 @@ classdef turtlebot_RTD_planner_static < planner
         
         %% 3. create the cost function for fmincon
             P.vdisp('Creating cost function',4)
+            
+            % buffer obstacles for high-level planner
+            O_HLP = buffer_polygon_obstacles(O,P.agent_footprint) ;
+            world_info.obstacles = O_HLP ;
             
             % make a waypoint
             z_goal = P.HLP.get_waypoint(agent_info,world_info,P.lookahead_distance) ;
@@ -391,10 +390,11 @@ classdef turtlebot_RTD_planner_static < planner
         
         %% plotting
         function plot(P,~)
+            P.vdisp('Plotting!',8)
             P.plot_at_time() ;
         end
         
-        function plot_at_time(P,t)
+        function plot_at_time(P,t)            
             if nargin < 2
                 if ~isempty(P.info.agent_time)
                     t = P.info.agent_time(end) ;
@@ -402,8 +402,6 @@ classdef turtlebot_RTD_planner_static < planner
                     t = 0 ;
                 end
             end
-            
-            P.vdisp('Plotting!',8)
             
             hold_check = false ;
             if ~ishold
