@@ -221,8 +221,15 @@ classdef turtlebot_RTD_planner_static < planner
             O_HLP = buffer_polygon_obstacles(O,P.agent_footprint) ;
             world_info.obstacles = O_HLP ;
             
-            % make a waypoint
-            z_goal = P.HLP.get_waypoint(agent_info,world_info,P.lookahead_distance) ;
+            % make a waypoint (this is wrapped in a try/catch in case the
+            % waypoint planner has bugs)
+            try
+                P.vdisp('Getting waypoint',7)
+                z_goal = P.HLP.get_waypoint(agent_info,world_info,P.lookahead_distance) ;
+            catch
+                P.vdisp('Waypoint creation errored! Using global goal instead',6)
+                z_goal = P.HLP.goal ;
+            end
             P.current_waypoint = z_goal ;
             
             % put waypoint into FRS frame to use for planning
