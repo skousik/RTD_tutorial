@@ -232,7 +232,7 @@ classdef turtlebot_RTD_planner_static < planner
             end
             P.current_waypoint = z_goal ;
             
-            % put waypoint into FRS frame to use for planning
+            % put waypoint in robot's body-fixed frame to use for planning
             z_goal_local = world_to_local(agent_state(1:3),z_goal(1:2)) ;
             
             % create cost function

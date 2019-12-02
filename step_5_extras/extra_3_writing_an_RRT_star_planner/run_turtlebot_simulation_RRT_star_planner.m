@@ -4,27 +4,29 @@
 %
 % Author: Shreyas Kousik
 % Created: 19 Oct 2019
-% Updated: 20 Nov 2019
+% Updated: 2 Dec 2019
 %
 %% user parameters
 % agent
-desired_speed = 0.25 ; % m/s
-sensor_radius = 20 ; % make this larger if initialize_tree_mode is 'once'
+desired_speed = 0.75 ; % m/s
+sensor_radius = 2.5 ; % make this larger if initialize_tree_mode is 'once'
 
 % world
 obstacle_size_bounds = [0.2, 0.3] ; % side length [min, max]
 N_obstacles = 7 ;
 bounds = [-4,4,-2,2] ;
 goal_radius = 0.5 ;
+world_buffer = 0.25 ; % this is used to make start and goal locations that are not too close to the robot or boundary
 
 % planner
-buffer = 0.3 ; % m
-t_plan = 0.5 ; % if t_plan = t_move, then real time planning is enforced
+buffer = 0.3 ; % [m] distance used to buffer obstacles for planning, must be larger than the agent's footprint
+t_plan = 1.0 ; % if t_plan = t_move, then real time planning is enforced
 t_move = 0.5 ;
 initialize_tree_mode = 'iter' ; % 'iter' or 'once'
-HLP_grow_tree_mode = 'seed' ; % 'new' or 'seed' or 'keep' (only matters if using 'iter' above)
+HLP_grow_tree_mode = 'new' ; % 'new' or 'seed' or 'keep' (only matters if using 'iter' above)
 grow_tree_once_timeout = 10 ;
 HLP_type = 'rrt' ; % 'rrt' or 'rrt*' or 'connect' or 'connect*'
+new_node_growth_distance = 0.5 ;
 
 % plotting
 plot_HLP_flag = true ;
@@ -49,10 +51,11 @@ P = turtlebot_RRT_planner('verbose',verbose_level,'buffer',buffer,...
     'grow_tree_once_timeout',grow_tree_once_timeout,...
     'HLP_grow_tree_mode',HLP_grow_tree_mode) ;
 
+P.HLP.new_node_growth_distance = new_node_growth_distance ;
 P.plot_HLP_flag = plot_HLP_flag ;
 P.HLP.plot_while_growing_tree_flag = plot_tree_growth_flag ;
 
-W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
+W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',world_buffer,...
                      'verbose',verbose_level,'goal_radius',goal_radius,...
                      'obstacle_size_bounds',obstacle_size_bounds) ;
 
