@@ -7,7 +7,7 @@ classdef turtlebot_RRT_planner < planner
     %
     % Author: Shreyas Kousik
     % Created: 31 Oct 2019
-    % Updated: 9 Nov 2019
+    % Updated: 3 Dec 2019
     
     properties
         lookahead_distance = 1 ;
@@ -19,7 +19,8 @@ classdef turtlebot_RRT_planner < planner
         
         % method for initializing the tree; if 'iter' is chosen, then the
         % RRT runs for P.t_plan every planning iteration, but if 'once' is
-        % chosen, then the entire tree is grown in the first iteration
+        % chosen, then the entire tree is grown when "setup" is called
+        % (before the receding-horizon planning loop begins)
         initialize_tree_mode = 'iter' ;
         
         % method for growing the tree within the RRT_HLP; choose 'new' or
