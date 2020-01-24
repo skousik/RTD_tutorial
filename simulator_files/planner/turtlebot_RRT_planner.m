@@ -7,12 +7,11 @@ classdef turtlebot_RRT_planner < planner
     %
     % Author: Shreyas Kousik
     % Created: 31 Oct 2019
-    % Updated: 3 Dec 2019
+    % Updated: 24 Jan 2019
     
     properties
         lookahead_distance = 1 ;
         desired_speed = 1 ;
-        plot_HLP_flag = false ;
         
         % HLP type
         HLP_type = 'RRT' ; % 'rrt' or 'rrt*' or 'connect' or 'connect*'
