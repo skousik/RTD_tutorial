@@ -3,8 +3,8 @@
 % framework, using RTD to plan online.
 %
 % Author: Shreyas Kousik
-% Created: 6 June 2019
-% Updated: 30 Oct 2019
+% Created: 6 Jun 2019
+% Updated: 8 Mar 2020
 %
 %% user parameters
 % world
@@ -26,6 +26,10 @@ verbose_level = 5 ;
 max_sim_time = 1000 ;
 max_sim_iterations = 1000 ;
 
+% plotting
+plot_while_simulating_flag = true ;
+animate_after_simulating_flag = true ;
+
 %% automated from here
 A = turtlebot_agent ;
 
@@ -43,7 +47,13 @@ W = static_box_world('bounds',bounds,'N_obstacles',N_obstacles,'buffer',0.25,...
 
 S = simulator(A,W,P,'allow_replan_errors',true,'verbose',verbose_level,...
               'max_sim_time',max_sim_time,...
-              'max_sim_iterations',max_sim_iterations) ;
+              'max_sim_iterations',max_sim_iterations,...
+              'plot_while_running',plot_while_simulating_flag) ;
 
 %% run simulation
 S.run() ;
+
+%% animate simulation
+if animate_after_simulating_flag
+    S.animate()
+end

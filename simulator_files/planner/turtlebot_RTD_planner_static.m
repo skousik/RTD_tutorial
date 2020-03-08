@@ -48,7 +48,7 @@ classdef turtlebot_RTD_planner_static < planner
         % plotting
         plot_obstacles_flag = true ;
         plot_FRS_flag = false ;
-        plot_HLP_flag = false ;
+        plot_waypoints_flag = false ;
     end
     
     %% methods
