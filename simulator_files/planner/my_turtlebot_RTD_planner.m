@@ -17,9 +17,9 @@ classdef my_turtlebot_RTD_planner < planner
             P = parse_args(P,'name',name,'buffer',buffer,'HLP',HLP,varargin{:}) ;
             
             FRS_data = cell(1,3) ;
-            FRS_data{1} = load('turtlebot_FRS_deg_10_v0_0.0_to_0.5.mat') ;
-            FRS_data{2} = load('turtlebot_FRS_deg_10_v0_0.5_to_1.0.mat') ;
-            FRS_data{3} = load('turtlebot_FRS_deg_10_v0_1.0_to_1.5.mat') ;
+            FRS_data{1} = load('turtlebot_FRS_deg_10_v_0_0.0_to_0.5.mat') ;
+            FRS_data{2} = load('turtlebot_FRS_deg_10_v_0_0.5_to_1.0.mat') ;
+            FRS_data{3} = load('turtlebot_FRS_deg_10_v_0_1.0_to_1.5.mat') ;
             P.FRS = FRS_data ;
         end
         
