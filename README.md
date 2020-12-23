@@ -24,7 +24,7 @@ To run the code in this repository, you will need the following:
 * [RTD](https://github.com/ramvasudevan/RTD) for the offline computation and the online examples
 
 # Overview
-RTD is a way to control a robot correctly, meaning within constraints that we specify as engineers. For the TurtleBot, we define **correct** as not crashing into static obstacles while obeying speed, acceleration, and yaw rate limits.
+RTD is a way to plan correct trajectories for a robot, meaning within constraints that we specify as engineers. For the TurtleBot, we define **correct** as not crashing into static obstacles while obeying speed, acceleration, and yaw rate limits.
 
 ## 1. Modeling the TurtleBot
 To control a robot, RTD uses a **state space model**. In the case of the Turtlebot, we use a **unicycle model**, which has position <img src="/tex/7392a8cd69b275fa1798ef94c839d2e0.svg?invert_in_darkmode&sanitize=true" align=middle width=38.135511149999985pt height=24.65753399999998pt/>, heading <img src="/tex/27e556cf3caa0673ac49a8f0de3c73ca.svg?invert_in_darkmode&sanitize=true" align=middle width=8.17352744999999pt height=22.831056599999986pt/>, and speed <img src="/tex/6c4adbc36120d62b98deef2a20d5d303.svg?invert_in_darkmode&sanitize=true" align=middle width=8.55786029999999pt height=14.15524440000002pt/> as its **states**. These states have the following **dynamics**, expressed as an ordinary differential equation (ODE):
