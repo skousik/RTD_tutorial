@@ -1,5 +1,7 @@
 **TL;DR**: [Start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
 
+**Note** this tutorial uses math compiled by TeXify, which are hard to read in dark mode on GitHub!
+
 # RTD Tutorial
 
 This tutorial implements [Reachability-based Trajectory Design](https://github.com/ramvasudevan/RTD) (RTD) on a [TurtleBot](https://www.turtlebot.com/turtlebot2/) in simulation. RTD has been developed at the University of Michigan's [ROAHM Lab](http://www.roahmlab.com/).
