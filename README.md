@@ -1,4 +1,4 @@
-**TL;DR**: [Start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
+**TL;DR**: Run `setup.m`, then [start here with Step 1](https://github.com/skousik/RTD_tutorial/tree/master/step_1_desired_trajectories) if you don't want to read the overview.
 
 **Note** this tutorial uses math compiled by TeXify, which are hard to read in dark mode on GitHub!
 
@@ -24,6 +24,8 @@ To run the code in this repository, you will need the following:
 * [simulator](https://github.com/skousik/simulator) for the online planning examples
 * [spotless](https://github.com/spot-toolbox/spotless) for the offline FRS computation and the online examples
 * [RTD](https://github.com/ramvasudevan/RTD) for the offline computation and the online examples
+
+You can run `setup.m` as a sanity check.
 
 # Overview
 RTD is a way to plan correct trajectories for a robot, meaning within constraints that we specify as engineers. For the TurtleBot, we define **correct** as not crashing into static obstacles while obeying speed, acceleration, and yaw rate limits.
